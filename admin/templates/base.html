@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OnzeNews Admin{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    {% if session.get('user_id') %}
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">O</div>
+                    <div>
+                        <div class="sidebar-logo-text">OnzeNews</div>
+                        <div class="sidebar-logo-sub">Admin Panel</div>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <span class="nav-item-icon">📊</span>
+                        <span class="nav-item-text">Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Controle</div>
+                    <a href="{{ url_for('logs') }}" class="nav-item {% if request.endpoint == 'logs' %}active{% endif %}">
+                        <span class="nav-item-icon">📋</span>
+                        <span class="nav-item-text">Logs de Acesso</span>
+                    </a>
+                    <a href="{{ url_for('schedule') }}" class="nav-item {% if request.endpoint == 'schedule' %}active{% endif %}">
+                        <span class="nav-item-icon">⏰</span>
+                        <span class="nav-item-text">Agendamento</span>
+                    </a>
+                    <a href="{{ url_for('sources') }}" class="nav-item {% if request.endpoint == 'sources' %}active{% endif %}">
+                        <span class="nav-item-icon">📰</span>
+                        <span class="nav-item-text">Fontes</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="#" onclick="generateNewsletter()" class="nav-item">
+                        <span class="nav-item-icon">🚀</span>
+                        <span class="nav-item-text">Gerar Agora</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="nav-item">
+                        <span class="nav-item-icon">🚪</span>
+                        <span class="nav-item-text">Sair</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <script>
+        function generateNewsletter() {
+            if (confirm('Deseja gerar o newsletter agora?')) {
+                fetch('/generate', { method: 'POST' })
+                    .then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        }
+                    });
+            }
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Fechar modal ao clicar fora
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

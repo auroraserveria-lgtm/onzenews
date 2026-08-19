@@ -1,0 +1,140 @@
+[
+  {
+    "speaker": "Aurora",
+    "text": "Olá! Sejam muito bem-vindos ao OnzeNews Áudio, o podcast do nosso informativo financeiro diário. Hoje é Quarta-feira, 19 de agosto de 2026. Eu sou a Aurora e estou aqui com o Ricardo, nosso analista de mercados. Ricardo, bom dia!",
+    "file": "podcast/seg_000.mp3",
+    "duration": 15.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "Bom dia, Aurora! Obrigado pelo convite. Temos um dia bem movimentado pela frente no mercado financeiro.",
+    "file": "podcast/seg_001.mp3",
+    "duration": 6.4
+  },
+  {
+    "speaker": "Aurora",
+    "text": "Ótimo! Então vamos começar pelo que aconteceu ontem. Ricardo, quais foram os principais acontecimentos?",
+    "file": "podcast/seg_002.mp3",
+    "duration": 5.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "Ontem foi um dia bem tenso no varejo. A Casas Bahia entrou com pedido de recuperação judicial com passivos de R$ 17,3 bilhões. A empresa já vinha de dificuldades há tempo, com prejuízos em 20 dos 30 últimos trimestres. A situação se agravou com a impossibilidade de captar novos recursos e a restrição de crédito por parte de fornecedores e seguradoras.",
+    "file": "podcast/seg_003.mp3",
+    "duration": 24.4
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E no setor bancário?",
+    "file": "podcast/seg_004.mp3",
+    "duration": 1.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "O C6 Bank fechou o primeiro semestre com lucro de R$ 1,25 bilhão, alta de 20%. Um resultado positivo em meio ao cenário desafiador. Já os estrangeiros fizeram o maior saque semanal da B3 desde 2008, mostrando a aversão a risco global dos investidores internacionais.",
+    "file": "podcast/seg_005.mp3",
+    "duration": 18.0
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E tem mais notícias do setor, não é?",
+    "file": "podcast/seg_006.mp3",
+    "duration": 3.2
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "Sim! A Braskem Idesa entrou com pedido de recuperação judicial nos EUA sob o Capítulo 11. A Oncoclínicas teve prejuízo quadruplicado, chegando a R$ 275 milhões. Já a Vibra Energia foi destaque positivo com lucro de R$ 2,29 bilhões, alta espantosa de 365%.",
+    "file": "podcast/seg_007.mp3",
+    "duration": 17.2
+  },
+  {
+    "speaker": "Aurora",
+    "text": "Agora vamos falar sobre a agenda de hoje. O que os investidores devem acompanhar?",
+    "file": "podcast/seg_008.mp3",
+    "duration": 5.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "O grande destaque é a divulgação da ata da última reunião do Federal Reserve, o FOMC, às 15 horas de Brasília. Esse documento vai mostrar como os membros do comitê avaliaram o cenário e pode dar pistas sobre os próximos passos dos juros americanos. É um evento de altíssimo impacto para os mercados globais.",
+    "file": "podcast/seg_009.mp3",
+    "duration": 21.6
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E aqui no Brasil?",
+    "file": "podcast/seg_010.mp3",
+    "duration": 1.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "A FGV divulga o IGP-M do segundo decênio de agosto pela manhã. A tarde, o Banco Central revela o fluxo cambial estrangeiro semanal. E também tem leilão de títulos de 20 anos nos EUA, que pode influenciar os juros longos globais.",
+    "file": "podcast/seg_011.mp3",
+    "duration": 16.4
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E no cenário internacional?",
+    "file": "podcast/seg_012.mp3",
+    "duration": 1.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "A China divulga a Loan Prime Rate, que é a taxa de referência para empréstimos. O Reino Unido e a Zona do Euro divulgam dados de inflação de julho. E a presidente do BCE, Christine Lagarde, faz um discurso que será acompanhado de perto.",
+    "file": "podcast/seg_013.mp3",
+    "duration": 17.6
+  },
+  {
+    "speaker": "Aurora",
+    "text": "Agora vamos ao resumo do dia de hoje. Ricardo, o que está acontecendo agora?",
+    "file": "podcast/seg_014.mp3",
+    "duration": 5.6
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "O mercado brasileiro viveu uma sessão de forte otimismo. O Ibovespa disparou quase 2%, atingindo 169.642 pontos. O dólar recuou quase 1%, fechando em R$ 5,17. O grande estímulo veio do Tesouro dos EUA, que anunciou a duplicação do volume de recompra de títulos de longo prazo, passando de US$ 2 bilhões para US$ 4 bilhões por operação.",
+    "file": "podcast/seg_015.mp3",
+    "duration": 23.2
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E qual foi o impacto dessa decisão?",
+    "file": "podcast/seg_016.mp3",
+    "duration": 2.8
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "Foi imediato. As taxas dos T-bonds de 30 anos, que estavam em máximas desde 2007 acima de 5,30%, recuaram quase 10 pontos-base. O alívio se espalhou por todos os mercados de risco. Petrobras e Vale subiram quase 3% cada, puxadas pela alta do petróleo. No setor financeiro, Itaú e Bradesco também fecharam no verde.",
+    "file": "podcast/seg_017.mp3",
+    "duration": 21.6
+  },
+  {
+    "speaker": "Aurora",
+    "text": "E a crise da Casas Bahia continua?",
+    "file": "podcast/seg_018.mp3",
+    "duration": 2.8
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "Sim, a justiça suspendeu temporariamente as demissões da empresa. A varejista segue operando normalmente enquanto negocia com credores. O ministro da Fazenda, Dario Durigan, também se pronunciou dizendo que os juros pagos pelo Tesouro são elevados e precisam ser endereçados.",
+    "file": "podcast/seg_019.mp3",
+    "duration": 16.0
+  },
+  {
+    "speaker": "Aurora",
+    "text": "Ricardo, obrigada pela análise completa! Para nossos ouvintes que quiserem acompanhar as atualizações, o jornal completo está disponível em nosso site. E lembrando que sempre atualizamos quando há notícias extraordinárias.",
+    "file": "podcast/seg_020.mp3",
+    "duration": 12.0
+  },
+  {
+    "speaker": "Ricardo",
+    "text": "É isso mesmo, Aurora. Fiquem atentos! O mercado financeiro não para e nós também não. Um abraço e até a próxima edição!",
+    "file": "podcast/seg_021.mp3",
+    "duration": 8.8
+  },
+  {
+    "speaker": "Aurora",
+    "text": "Um abraço a todos! O OnzeNews Áudio volta amanhã com mais um resumo completo do mercado. Bom descanso a todos e bons investimentos!",
+    "file": "podcast/seg_022.mp3",
+    "duration": 9.2
+  }
+]

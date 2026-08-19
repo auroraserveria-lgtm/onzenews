@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Agendamento — OnzeNews Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Agendamento</h1>
+    <p class="page-subtitle">Configure quando e como o OnzeNews é atualizado</p>
+</div>
+
+<!-- Schedule Config -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Configurações de Agendamento</h2>
+        <button onclick="saveSchedule()" class="btn btn-primary btn-sm">💾 Salvar</button>
+    </div>
+    <div class="content-card-body">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Atualização Diária</label>
+                <div class="flex items-center gap-2">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dailyEnabled" {{ 'checked' if configs.get('daily_enabled') == 'true' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span id="dailyEnabledLabel" class="form-label" style="margin: 0;">{{ 'Ativado' if configs.get('daily_enabled') == 'true' else 'Desativado' }}</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Horário Padrão</label>
+                <input type="time" id="dailyTime" class="form-input" value="{{ configs.get('daily_time', '08:00') }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Máx. Atualizações/Dia</label>
+                <input type="number" id="maxUpdates" class="form-input" value="{{ configs.get('max_updates_per_day', '3') }}" min="1" max="10">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Gerar Podcast</label>
+                <div class="flex items-center gap-2">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="podcastEnabled" {{ 'checked' if configs.get('podcast_enabled') == 'true' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gerar PDF</label>
+                <div class="flex items-center gap-2">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pdfEnabled" {{ 'checked' if configs.get('pdf_generation') == 'true' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notícias Extraordinárias</label>
+                <div class="flex items-center gap-2">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="breakingEnabled" {{ 'checked' if configs.get('breaking_news_enabled') == 'true' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Dias da Semana</label>
+            <div class="flex gap-2" style="flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="1" {{ 'checked' if '1' in configs.get('update_days', '1,2,3,4,5') }}> Segunda
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="2" {{ 'checked' if '2' in configs.get('update_days', '1,2,3,4,5') }}> Terça
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="3" {{ 'checked' if '3' in configs.get('update_days', '1,2,3,4,5') }}> Quarta
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="4" {{ 'checked' if '4' in configs.get('update_days', '1,2,3,4,5') }}> Quinta
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="5" {{ 'checked' if '5' in configs.get('update_days', '1,2,3,4,5') }}> Sexta
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="6" {{ 'checked' if '6' in configs.get('update_days', '1,2,3,4,5') }}> Sábado
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="day" value="0" {{ 'checked' if '0' in configs.get('update_days', '1,2,3,4,5') }}> Domingo
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Times -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Horários de Atualização</h2>
+        <button onclick="showModal('addTimeModal')" class="btn btn-primary btn-sm">➕ Adicionar Horário</button>
+    </div>
+    <div class="content-card-body">
+        <div class="time-grid">
+            {% for time in times %}
+            <div class="time-item" id="time-{{ time.id }}">
+                <div class="time-item-value">{{ time.update_time }}</div>
+                <div class="time-item-actions">
+                    <label class="toggle-switch" title="{{ 'Desativar' if time.is_active else 'Ativar' }}">
+                        <input type="checkbox" {{ 'checked' if time.is_active }} onchange="toggleTime({{ time.id }})">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTime({{ time.id }})" title="Remover">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not times %}
+        <p style="text-align: center; color: var(--text-muted); padding: 20px;">
+            Nenhum horário configurado. Clique em "Adicionar Horário" para começar.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Time Modal -->
+<div class="modal-overlay" id="addTimeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Adicionar Horário</h3>
+            <button class="modal-close" onclick="hideModal('addTimeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Horário</label>
+                <input type="time" id="newTime" class="form-input">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideModal('addTimeModal')">Cancelar</button>
+            <button class="btn btn-primary" onclick="addTime()">Adicionar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSchedule() {
+    const days = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
+
+    const configs = {
+        daily_enabled: document.getElementById('dailyEnabled').checked.toString(),
+        daily_time: document.getElementById('dailyTime').value,
+        max_updates_per_day: document.getElementById('maxUpdates').value,
+        podcast_enabled: document.getElementById('podcastEnabled').checked.toString(),
+        pdf_generation: document.getElementById('pdfEnabled').checked.toString(),
+        breaking_news_enabled: document.getElementById('breakingEnabled').checked.toString(),
+        update_days: days.join(',')
+    };
+
+    fetch('/schedule/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ configs })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Agendamento salvo com sucesso!');
+        }
+    });
+}
+
+function addTime() {
+    const time = document.getElementById('newTime').value;
+    if (!time) {
+        alert('Selecione um horário');
+        return;
+    }
+
+    fetch('/schedule/times', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', time })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            hideModal('addTimeModal');
+            location.reload();
+        }
+    });
+}
+
+function toggleTime(id) {
+    fetch('/schedule/times', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', id })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function deleteTime(id) {
+    if (confirm('Remover este horário?')) {
+        fetch('/schedule/times', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+
+// Toggle labels
+document.getElementById('dailyEnabled').addEventListener('change', function() {
+    document.getElementById('dailyEnabledLabel').textContent = this.checked ? 'Ativado' : 'Desativado';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — OnzeNews Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Visão geral do sistema OnzeNews</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon blue">📋</div>
+        <div class="stat-card-value">{{ total_logs }}</div>
+        <div class="stat-card-label">Total de Logs</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon green">📰</div>
+        <div class="stat-card-value">{{ active_sources }}</div>
+        <div class="stat-card-label">Fontes Ativas</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon yellow">⏰</div>
+        <div class="stat-card-value">{{ active_times }}</div>
+        <div class="stat-card-label">Horários Ativos</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon purple">🚀</div>
+        <div class="stat-card-value">{{ total_generations }}</div>
+        <div class="stat-card-label">Gerações Totais</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card-icon red">🚨</div>
+        <div class="stat-card-value">{{ total_breaking }}</div>
+        <div class="stat-card-label"> Notícias Extraordinárias</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Ações Rápidas</h2>
+    </div>
+    <div class="content-card-body">
+        <div class="flex gap-2">
+            <button onclick="generateNewsletter()" class="btn btn-primary">
+                🚀 Gerar Newsletter Agora
+            </button>
+            <button onclick="showModal('breakingModal')" class="btn btn-danger">
+                🚨 Notícia Extraordinária
+            </button>
+            <a href="{{ url_for('schedule') }}" class="btn btn-secondary">
+                ⚙️ Configurar Agendamento
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Logs -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Últimos Logs de Acesso</h2>
+        <a href="{{ url_for('logs') }}" class="btn btn-sm btn-secondary">Ver Todos</a>
+    </div>
+    <div class="content-card-body" style="padding: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Ação</th>
+                    <th>Detalhes</th>
+                    <th>Data/Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td>{{ log.username or 'Sistema' }}</td>
+                    <td><span class="badge badge-info">{{ log.action }}</span></td>
+                    <td>{{ log.details[:50] ~ '...' if log.details and log.details|length > 50 else log.details or '-' }}</td>
+                    <td>{{ log.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Generations -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Últimas Gerações</h2>
+    </div>
+    <div class="content-card-body" style="padding: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Mensagem</th>
+                    <th>Duração</th>
+                    <th>Data/Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gen in recent_generations %}
+                <tr>
+                    <td><span class="badge badge-info">{{ gen.generation_type }}</span></td>
+                    <td>
+                        {% if gen.status == 'sucesso' %}
+                            <span class="badge badge-success">Sucesso</span>
+                        {% else %}
+                            <span class="badge badge-danger">Erro</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ gen.message[:60] ~ '...' if gen.message and gen.message|length > 60 else gen.message or '-' }}</td>
+                    <td>{{ "%.1f"|format(gen.duration_seconds) }}s</td>
+                    <td>{{ gen.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Breaking News Modal -->
+<div class="modal-overlay" id="breakingModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">🚨 Notícia Extraordinária</h3>
+            <button class="modal-close" onclick="hideModal('breakingModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Título</label>
+                <input type="text" id="breakingTitle" class="form-input" placeholder="Ex: SELIC é cortada em 0.5%">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Conteúdo</label>
+                <textarea id="breakingContent" class="form-input" rows="4" placeholder="Descreva a notícia..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Fonte</label>
+                    <input type="text" id="breakingSource" class="form-input" placeholder="Ex: Reuters">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prioridade</label>
+                    <select id="breakingPriority" class="form-select">
+                        <option value="alta">Alta</option>
+                        <option value="critica">Crítica</option>
+                        <option value="urgente">Urgente</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideModal('breakingModal')">Cancelar</button>
+            <button class="btn btn-danger" onclick="publishBreaking()">Publicar Agora</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function publishBreaking() {
+    const title = document.getElementById('breakingTitle').value;
+    const content = document.getElementById('breakingContent').value;
+    const source = document.getElementById('breakingSource').value;
+    const priority = document.getElementById('breakingPriority').value;
+
+    if (!title || !content) {
+        alert('Preencha o título e conteúdo');
+        return;
+    }
+
+    fetch('/generate/breaking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, source, priority })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Notícia extraordinária publicada!');
+            hideModal('breakingModal');
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

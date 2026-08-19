@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Logs de Acesso — OnzeNews Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="flex flex-between">
+        <div>
+            <h1 class="page-title">Logs de Acesso</h1>
+            <p class="page-subtitle">Histórico de ações realizadas no sistema</p>
+        </div>
+        <form method="POST" action="{{ url_for('clear_logs') }}" onsubmit="return confirm('Tem certeza que deseja limpar todos os logs?')">
+            <button type="submit" class="btn btn-danger">🗑️ Limpar Logs</button>
+        </form>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Filtros</h2>
+    </div>
+    <div class="content-card-body">
+        <form method="GET" class="form-row">
+            <div class="form-group">
+                <label class="form-label">Ação</label>
+                <input type="text" name="action" class="form-input" placeholder="Filtrar por ação..." value="{{ action_filter }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Usuário</label>
+                <input type="text" name="user" class="form-input" placeholder="Filtrar por usuário..." value="{{ user_filter }}">
+            </div>
+            <div class="form-group" style="display: flex; align-items: flex-end;">
+                <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Logs ({{ total }} registros)</h2>
+    </div>
+    <div class="content-card-body" style="padding: 0;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuário</th>
+                    <th>Ação</th>
+                    <th>Detalhes</th>
+                    <th>IP</th>
+                    <th>Data/Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.id }}</td>
+                    <td>{{ log.username or 'Sistema' }}</td>
+                    <td><span class="badge badge-info">{{ log.action }}</span></td>
+                    <td>{{ log.details[:80] ~ '...' if log.details and log.details|length > 80 else log.details or '-' }}</td>
+                    <td><code>{{ log.ip_address or '-' }}</code></td>
+                    <td>{{ log.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total > per_page %}
+<div class="content-card">
+    <div class="content-card-body" style="display: flex; justify-content: center; gap: 8px;">
+        {% if page > 1 %}
+            <a href="?page={{ page - 1 }}&action={{ action_filter }}&user={{ user_filter }}" class="btn btn-secondary btn-sm">← Anterior</a>
+        {% endif %}
+
+        <span style="padding: 6px 12px; color: var(--text-muted);">
+            Página {{ page }} de {{ (total / per_page)|round(0, 'ceil')|int }}
+        </span>
+
+        {% if page * per_page < total %}
+            <a href="?page={{ page + 1 }}&action={{ action_filter }}&user={{ user_filter }}" class="btn btn-secondary btn-sm">Próxima →</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

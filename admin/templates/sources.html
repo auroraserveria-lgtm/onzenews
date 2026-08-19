@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Fontes de Informação — OnzeNews Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="flex flex-between">
+        <div>
+            <h1 class="page-title">Fontes de Informação</h1>
+            <p class="page-subtitle">Gerencie as fontes de notícias do OnzeNews</p>
+        </div>
+        <button onclick="showModal('addSourceModal')" class="btn btn-primary">
+            ➕ Adicionar Fonte
+        </button>
+    </div>
+</div>
+
+<!-- Sources List -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Fontes Cadastradas ({{ sources|length }})</h2>
+    </div>
+    <div class="content-card-body">
+        {% for source in sources %}
+        <div class="source-card {{ 'inactive' if not source.is_active }}" id="source-{{ source.id }}">
+            <div class="source-icon">📰</div>
+            <div class="source-info">
+                <div class="source-name">{{ source.name }}</div>
+                <div class="source-url">{{ source.url }}</div>
+                <div class="source-category">
+                    <span class="badge badge-info">{{ source.category }}</span>
+                    <span class="badge badge-warning">Prioridade {{ source.priority }}</span>
+                </div>
+            </div>
+            <div class="source-actions">
+                <label class="toggle-switch" title="{{ 'Desativar' if source.is_active else 'Ativar' }}">
+                    <input type="checkbox" {{ 'checked' if source.is_active }} onchange="toggleSource({{ source.id }})">
+                    <span class="toggle-slider"></span>
+                </label>
+                <button class="btn btn-secondary btn-icon btn-sm" onclick="editSource({{ source.id }}, '{{ source.name }}', '{{ source.url }}', '{{ source.category }}', {{ source.priority }})" title="Editar">
+                    ✏️
+                </button>
+                <button class="btn btn-danger btn-icon btn-sm" onclick="deleteSource({{ source.id }})" title="Excluir">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not sources %}
+        <p style="text-align: center; color: var(--text-muted); padding: 40px;">
+            Nenhuma fonte cadastrada. Clique em "Adicionar Fonte" para começar.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Source Modal -->
+<div class="modal-overlay" id="addSourceModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">➕ Adicionar Fonte</h3>
+            <button class="modal-close" onclick="hideModal('addSourceModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input type="text" id="addName" class="form-input" placeholder="Ex: Valor Econômico">
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL</label>
+                <input type="url" id="addUrl" class="form-input" placeholder="Ex: https://valor.globo.com/">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select id="addCategory" class="form-select">
+                        <option value="economia">Economia</option>
+                        <option value="politica">Política</option>
+                        <option value="empresas">Empresas</option>
+                        <option value="internacional">Internacional</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="mercado">Mercado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prioridade</label>
+                    <input type="number" id="addPriority" class="form-input" value="1" min="1" max="10">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideModal('addSourceModal')">Cancelar</button>
+            <button class="btn btn-primary" onclick="addSource()">Adicionar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Source Modal -->
+<div class="modal-overlay" id="editSourceModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">✏️ Editar Fonte</h3>
+            <button class="modal-close" onclick="hideModal('editSourceModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input type="text" id="editName" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL</label>
+                <input type="url" id="editUrl" class="form-input">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select id="editCategory" class="form-select">
+                        <option value="economia">Economia</option>
+                        <option value="politica">Política</option>
+                        <option value="empresas">Empresas</option>
+                        <option value="internacional">Internacional</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="mercado">Mercado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prioridade</label>
+                    <input type="number" id="editPriority" class="form-input" min="1" max="10">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideModal('editSourceModal')">Cancelar</button>
+            <button class="btn btn-primary" onclick="updateSource()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function addSource() {
+    const name = document.getElementById('addName').value;
+    const url = document.getElementById('addUrl').value;
+    const category = document.getElementById('addCategory').value;
+    const priority = document.getElementById('addPriority').value;
+
+    if (!name || !url) {
+        alert('Preencha o nome e a URL');
+        return;
+    }
+
+    fetch('/sources/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, url, category, priority: parseInt(priority) })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            hideModal('addSourceModal');
+            location.reload();
+        }
+    });
+}
+
+function editSource(id, name, url, category, priority) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editUrl').value = url;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editPriority').value = priority;
+    showModal('editSourceModal');
+}
+
+function updateSource() {
+    const id = document.getElementById('editId').value;
+    const name = document.getElementById('editName').value;
+    const url = document.getElementById('editUrl').value;
+    const category = document.getElementById('editCategory').value;
+    const priority = document.getElementById('editPriority').value;
+
+    fetch('/sources/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: parseInt(id), name, url, category, priority: parseInt(priority), is_active: 1 })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            hideModal('editSourceModal');
+            location.reload();
+        }
+    });
+}
+
+function toggleSource(id) {
+    fetch('/sources/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function deleteSource(id) {
+    if (confirm('Tem certeza que deseja excluir esta fonte?')) {
+        fetch('/sources/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
