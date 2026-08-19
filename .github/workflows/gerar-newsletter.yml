@@ -1,0 +1,40 @@
+name: Gerar Newsletter Diario
+
+on:
+  schedule:
+    # Todo dia as 8h de Brasilia (11:00 UTC)
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install playwright edge-tts
+          playwright install chromium --with-deps
+
+      - name: Gerar newsletter
+        run: python gerar_jornal.py diario
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: './output'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy automatico"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
