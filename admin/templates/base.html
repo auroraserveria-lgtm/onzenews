@@ -50,6 +50,10 @@
 
                 <div class="nav-section">
                     <div class="nav-section-title">Sistema</div>
+                    <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+                        <span class="nav-item-icon">⚙️</span>
+                        <span class="nav-item-text">Configurações</span>
+                    </a>
                     <a href="#" onclick="generateNewsletter()" class="nav-item">
                         <span class="nav-item-icon">🚀</span>
                         <span class="nav-item-text">Gerar Agora</span>

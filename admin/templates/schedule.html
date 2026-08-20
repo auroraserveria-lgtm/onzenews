@@ -8,11 +8,34 @@
     <p class="page-subtitle">Configure quando e como o OnzeNews é atualizado</p>
 </div>
 
+<!-- Status do GitHub Actions -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Status do GitHub Actions</h2>
+    </div>
+    <div class="content-card-body">
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">Integração</span>
+                <span class="status-badge status-active">✓ Ativa</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Horários configurados</span>
+                <span class="status-value">{{ times|length }} horário(s)</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Ação</span>
+                <span class="status-value">Clique em "Salvar" para atualizar o GitHub</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Schedule Config -->
 <div class="content-card">
     <div class="content-card-header">
         <h2 class="content-card-title">Configurações de Agendamento</h2>
-        <button onclick="saveSchedule()" class="btn btn-primary btn-sm">💾 Salvar</button>
+        <button onclick="saveSchedule()" class="btn btn-primary btn-sm">💾 Salvar no GitHub</button>
     </div>
     <div class="content-card-body">
         <div class="form-row">
@@ -106,6 +129,9 @@
         <button onclick="showModal('addTimeModal')" class="btn btn-primary btn-sm">➕ Adicionar Horário</button>
     </div>
     <div class="content-card-body">
+        <p class="help-text" style="margin-bottom: 1rem; color: var(--text-muted);">
+            Estes horários são convertidos automaticamente para UTC e atualizados no GitHub Actions.
+        </p>
         <div class="time-grid">
             {% for time in times %}
             <div class="time-item" id="time-{{ time.id }}">
@@ -131,6 +157,24 @@
     </div>
 </div>
 
+<!-- Informação sobre UTC -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">ℹ️ Informação de Fuso Horário</h2>
+    </div>
+    <div class="content-card-body">
+        <p style="color: var(--text-muted);">
+            Os horários são exibidos no horário de Brasília (UTC-3). O GitHub Actions executa em UTC.
+            Quando você salva, o sistema converte automaticamente. Exemplo:
+        </p>
+        <ul style="color: var(--text-muted); margin-left: 1rem; margin-top: 0.5rem;">
+            <li>08:00 BRT = 11:00 UTC</li>
+            <li>12:00 BRT = 15:00 UTC</li>
+            <li>18:00 BRT = 21:00 UTC</li>
+        </ul>
+    </div>
+</div>
+
 <!-- Add Time Modal -->
 <div class="modal-overlay" id="addTimeModal">
     <div class="modal">
@@ -140,7 +184,7 @@
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label class="form-label">Horário</label>
+                <label class="form-label">Horário (Brasília)</label>
                 <input type="time" id="newTime" class="form-input">
             </div>
         </div>
@@ -165,6 +209,10 @@ function saveSchedule() {
         update_days: days.join(',')
     };
 
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ Salvando no GitHub...';
+
     fetch('/schedule/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -172,9 +220,19 @@ function saveSchedule() {
     })
     .then(r => r.json())
     .then(data => {
+        btn.disabled = false;
+        btn.textContent = '💾 Salvar no GitHub';
+        
         if (data.success) {
-            alert('Agendamento salvo com sucesso!');
+            alert(data.message || 'Agendamento salvo e atualizado no GitHub Actions!');
+        } else {
+            alert('Erro: ' + (data.message || 'Erro desconhecido'));
         }
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.textContent = '💾 Salvar no GitHub';
+        alert('Erro ao salvar: ' + error.message);
     });
 }
 

@@ -8,6 +8,37 @@
     <p class="page-subtitle">Visão geral do sistema OnzeNews</p>
 </div>
 
+<!-- Status do Sistema -->
+<div class="content-card">
+    <div class="content-card-header">
+        <h2 class="content-card-title">Status do Sistema</h2>
+    </div>
+    <div class="content-card-body">
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">GitHub Actions</span>
+                <span class="status-badge {{ 'status-active' if github_status == 'conectado' else 'status-inactive' }}">
+                    {{ '✓ Conectado' if github_status == 'conectado' else '✗ Desconectado' }}
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Repositório</span>
+                <span class="status-value">{{ github_repo }}</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Último Deploy</span>
+                <span class="status-value">{{ last_deploy or 'Nenhum' }}</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Site</span>
+                <a href="https://onzenews-public.netlify.app" target="_blank" class="btn btn-sm btn-link">
+                    Ver ↗
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Stats Grid -->
 <div class="stats-grid">
     <div class="stat-card">
@@ -48,7 +79,7 @@
     </div>
     <div class="content-card-body">
         <div class="flex gap-2">
-            <button onclick="generateNewsletter()" class="btn btn-primary">
+            <button onclick="generateNewsletter()" class="btn btn-primary" id="generateBtn">
                 🚀 Gerar Newsletter Agora
             </button>
             <button onclick="showModal('breakingModal')" class="btn btn-danger">
@@ -57,7 +88,11 @@
             <a href="{{ url_for('schedule') }}" class="btn btn-secondary">
                 ⚙️ Configurar Agendamento
             </a>
+            <a href="{{ url_for('settings') }}" class="btn btn-secondary">
+                ⚙️ Configurações GitHub
+            </a>
         </div>
+        <div id="generateStatus" class="alert" style="display: none; margin-top: 1rem;"></div>
     </div>
 </div>
 
@@ -112,14 +147,14 @@
                 <tr>
                     <td><span class="badge badge-info">{{ gen.generation_type }}</span></td>
                     <td>
-                        {% if gen.status == 'sucesso' %}
-                            <span class="badge badge-success">Sucesso</span>
+                        {% if gen.status == 'sucesso' or gen.status == 'executando' %}
+                            <span class="badge badge-success">{{ gen.status }}</span>
                         {% else %}
-                            <span class="badge badge-danger">Erro</span>
+                            <span class="badge badge-danger">{{ gen.status }}</span>
                         {% endif %}
                     </td>
                     <td>{{ gen.message[:60] ~ '...' if gen.message and gen.message|length > 60 else gen.message or '-' }}</td>
-                    <td>{{ "%.1f"|format(gen.duration_seconds) }}s</td>
+                    <td>{{ "%.1f"|format(gen.duration_seconds) if gen.duration_seconds else '-' }}s</td>
                     <td>{{ gen.created_at }}</td>
                 </tr>
                 {% endfor %}
@@ -167,6 +202,42 @@
 </div>
 
 <script>
+async function generateNewsletter() {
+    const btn = document.getElementById('generateBtn');
+    const statusDiv = document.getElementById('generateStatus');
+    
+    btn.disabled = true;
+    btn.textContent = '⏳ Disparando geração...';
+    statusDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Como é redirect, vamos apenas mostrar mensagem
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'alert alert-success';
+        statusDiv.innerHTML = `
+            <strong>Geração iniciada!</strong><br>
+            O newsletter está sendo gerado no GitHub Actions.<br>
+            O deploy acontecerá automaticamente em alguns minutos.<br>
+            <a href="https://app.netlify.com/teams/aurora.server.ia/sites" target="_blank" style="color: #0066cc;">Ver deploys no Netlify ↗</a>
+        `;
+        
+    } catch (error) {
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'alert alert-error';
+        statusDiv.textContent = 'Erro ao iniciar geração: ' + error.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 Gerar Newsletter Agora';
+    }
+}
+
 function publishBreaking() {
     const title = document.getElementById('breakingTitle').value;
     const content = document.getElementById('breakingContent').value;

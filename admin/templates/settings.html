@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - OnzeNews Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>OnzeNews</h2>
+                <p>Painel Admin</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('schedule') }}">Agendamento</a>
+                <a href="{{ url_for('sources') }}">Fontes</a>
+                <a href="{{ url_for('logs') }}">Logs</a>
+                <a href="{{ url_for('settings') }}" class="active">Configurações</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}">Sair</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Configurações do Sistema</h1>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="settings-section">
+                <h2>GitHub Actions</h2>
+                <p class="section-description">
+                    Configuração da integração com GitHub para geração automática do jornal.
+                </p>
+
+                <div class="setting-card">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Status da Conexão</h3>
+                            <p>Verifica se o token do GitHub está configurado corretamente.</p>
+                        </div>
+                        <div class="setting-action">
+                            <span class="status-badge {{ 'status-active' if github_token_set else 'status-inactive' }}">
+                                {{ 'Configurado' if github_token_set else 'Não configurado' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Repositório</h3>
+                            <p>Repositório no GitHub onde o workflow está configurado.</p>
+                        </div>
+                        <div class="setting-value">
+                            <code>{{ github_repo }}</code>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Workflow</h3>
+                            <p>Arquivo de workflow que executa a geração diária.</p>
+                        </div>
+                        <div class="setting-value">
+                            <code>{{ github_workflow }}</code>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Testar Conexão</h3>
+                            <p>Verifica se o token tem acesso ao repositório.</p>
+                        </div>
+                        <div class="setting-action">
+                            <button id="testGithubBtn" class="btn btn-primary">
+                                Testar Conexão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="githubTestResult" class="alert" style="display: none;"></div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Netlify</h2>
+                <p class="section-description">
+                    Deploy automático para o Netlify após cada geração.
+                </p>
+
+                <div class="setting-card">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Status do Deploy</h3>
+                            <p>Último deploy realizado no Netlify.</p>
+                        </div>
+                        <div class="setting-value">
+                            <a href="https://onzenews-public.netlify.app" target="_blank" class="btn btn-link">
+                                Ver Site ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Variáveis de Ambiente</h2>
+                <p class="section-description">
+                    Configurações sensíveis armazenadas de forma segura no Vercel.
+                </p>
+
+                <div class="setting-card">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>GITHUB_TOKEN</h3>
+                            <p>Token de acesso pessoal com permissão de workflows.</p>
+                        </div>
+                        <div class="setting-action">
+                            <span class="status-badge {{ 'status-active' if github_token_set else 'status-inactive' }}">
+                                {{ '✓ Configurado' if github_token_set else '✗ Não configurado' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>GITHUB_REPO</h3>
+                            <p>Repositório no formato owner/repo.</p>
+                        </div>
+                        <div class="setting-action">
+                            <span class="status-badge status-active">✓ Configurado</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>GITHUB_WORKFLOW</h3>
+                            <p>Nome do arquivo de workflow.</p>
+                        </div>
+                        <div class="setting-action">
+                            <span class="status-badge status-active">✓ Configurado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Como Funciona</h2>
+                <p class="section-description">
+                    Fluxo completo de geração automática.
+                </p>
+
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <span class="flow-icon">⏰</span>
+                        <span class="flow-text">GitHub Actions agenda diariamente</span>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <span class="flow-icon">🔍</span>
+                        <span class="flow-text">Scraper coleta notícias via RSS</span>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <span class="flow-icon">📰</span>
+                        <span class="flow-text">Gera HTML e PDF do jornal</span>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <span class="flow-icon">🚀</span>
+                        <span class="flow-text">Deploy automático no Netlify</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('testGithubBtn').addEventListener('click', async function() {
+            const btn = this;
+            const resultDiv = document.getElementById('githubTestResult');
+            
+            btn.disabled = true;
+            btn.textContent = 'Testando...';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/settings/test-github', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'alert ' + (result.success ? 'alert-success' : 'alert-error');
+                resultDiv.textContent = result.message;
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'alert alert-error';
+                resultDiv.textContent = 'Erro ao testar conexão: ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Testar Conexão';
+            }
+        });
+    </script>
+</body>
+</html>

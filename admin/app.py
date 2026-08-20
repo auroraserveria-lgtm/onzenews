@@ -1,26 +1,155 @@
 """
 OnzeNews — Painel Administrativo
-Flask + SQLite para controle completo do jornal
+Flask + SQLite + GitHub Actions Integration
 """
 
 import os
+import re
 import json
 import sqlite3
 import hashlib
 import secrets
+import base64
 from datetime import datetime, timedelta
 from functools import wraps
+from urllib.request import urlopen, Request
+from urllib.parse import quote
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 
 # ─── Configuração ────────────────────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(BASE_DIR)
+# No Vercel, o diretório base é /tmp para escrita
+IS_VERCEL = os.path.exists("/tmp")
+BASE_DIR = "/tmp" if IS_VERCEL else os.path.dirname(os.path.abspath(__file__))
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "onzenews.db")
-OUTPUT_DIR = os.path.join(PROJECT_DIR, "output")
+OUTPUT_DIR = os.path.join(APP_DIR, "..", "output")
 
-app = Flask(__name__)
+# GitHub Config (via environment variables)
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "auroraserveria-lgtm/onzenews")
+GITHUB_WORKFLOW = os.environ.get("GITHUB_WORKFLOW", "gerar-newsletter.yml")
+
+# Caminho para templates e static
+TEMPLATE_DIR = os.path.join(APP_DIR, "templates")
+STATIC_DIR = os.path.join(APP_DIR, "static")
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.secret_key = secrets.token_hex(32)
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = os.path.join(BASE_DIR, "flask_session")
+
+# ─── GitHub API Helper ──────────────────────────────────────────────────────
+def github_api(endpoint, method="GET", data=None):
+    """Faz chamada à API do GitHub."""
+    if not GITHUB_TOKEN:
+        return {"error": "GitHub token não configurado"}
+    
+    url = f"https://api.github.com{endpoint}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "OnzeNews-Admin",
+        "Content-Type": "application/json"
+    }
+    
+    body = json.dumps(data).encode('utf-8') if data else None
+    
+    try:
+        req = Request(url, headers=headers, data=body, method=method)
+        with urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def get_workflow_content():
+    """Busca o conteúdo atual do workflow file."""
+    endpoint = f"/repos/{GITHUB_REPO}/contents/.github/workflows/{GITHUB_WORKFLOW}"
+    result = github_api(endpoint)
+    
+    if "error" in result:
+        return None, result["error"]
+    
+    # Decodificar conteúdo
+    content = base64.b64decode(result["content"]).decode('utf-8')
+    return content, None
+
+
+def update_workflow_content(new_content, message="chore: update schedule via admin panel"):
+    """Atualiza o workflow file no GitHub."""
+    # Primeiro, buscar SHA atual
+    endpoint = f"/repos/{GITHUB_REPO}/contents/.github/workflows/{GITHUB_WORKFLOW}"
+    result = github_api(endpoint)
+    
+    if "error" in result:
+        return False, result["error"]
+    
+    sha = result["sha"]
+    
+    # Atualizar
+    data = {
+        "message": message,
+        "content": base64.b64encode(new_content.encode('utf-8')).decode('utf-8'),
+        "sha": sha
+    }
+    
+    result = github_api(endpoint, method="PUT", data=data)
+    
+    if "error" in result:
+        return False, result["error"]
+    
+    return True, None
+
+
+def trigger_workflow():
+    """Dispara o workflow manualmente."""
+    endpoint = f"/repos/{GITHUB_REPO}/actions/workflows/{GITHUB_WORKFLOW}/dispatches"
+    data = {"ref": "master"}
+    
+    result = github_api(endpoint, method="POST", data=data)
+    
+    # 204 No Content é sucesso
+    if result is None or (isinstance(result, dict) and "error" not in result):
+        return True, None
+    
+    return False, result.get("error", "Erro desconhecido")
+
+
+def update_cron_schedule(times):
+    """Atualiza o cron schedule no workflow baseado nos horários configurados."""
+    content, error = get_workflow_content()
+    if error:
+        return False, error
+    
+    # Converter horários para cron format (UTC)
+    # Horário de Brasília = UTC-3
+    cron_lines = []
+    for time_str in times:
+        parts = time_str.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+        
+        # Converter para UTC (adicionar 3 horas)
+        utc_hour = (hour + 3) % 24
+        
+        cron_lines.append(f"    - cron: '{minute} {utc_hour} * * *'")
+    
+    if not cron_lines:
+        cron_lines = ["    - cron: '0 11 * * *'"]  # Padrão: 8h BRT
+    
+    # Substituir a seção de schedule no YAML
+    new_schedule = "  schedule:\n    # Gerado automaticamente pelo painel admin\n" + "\n".join(cron_lines)
+    
+    # Encontrar e substituir a seção schedule completamente
+    # O padrão deve capturar de "  schedule:" até antes de "  workflow_dispatch:" ou "jobs:"
+    pattern = r'  schedule:\s*\n(?:.*\n)*?(?=  [a-z_]|\njobs:)'
+    new_content = re.sub(pattern, new_schedule + "\n", content, flags=re.DOTALL)
+    
+    if new_content == content:
+        return False, "Não foi possível atualizar o schedule"
+    
+    return update_workflow_content(new_content, "feat: update schedule via admin panel")
+
 
 # ─── Database Setup ──────────────────────────────────────────────────────────
 def get_db():
@@ -133,7 +262,7 @@ def init_db():
     default_configs = [
         ("daily_enabled", "true"),
         ("daily_time", "08:00"),
-        ("update_days", "1,2,3,4,5"),  # Seg-Sex
+        ("update_days", "1,2,3,4,5"),
         ("max_updates_per_day", "3"),
         ("breaking_news_enabled", "true"),
         ("podcast_enabled", "true"),
@@ -149,21 +278,19 @@ def init_db():
     # Inserir horários padrão
     cursor.execute("SELECT COUNT(*) FROM update_times")
     if cursor.fetchone()[0] == 0:
-        default_times = ["08:00", "12:00", "18:00"]
-        for time in default_times:
+        default_times = ["08:00"]
+        for time_val in default_times:
             cursor.execute(
                 "INSERT INTO update_times (update_time, is_active) VALUES (?, ?)",
-                (time, 1)
+                (time_val, 1)
             )
 
     # Inserir fontes padrão
     cursor.execute("SELECT COUNT(*) FROM news_sources")
     if cursor.fetchone()[0] == 0:
         default_sources = [
-            ("UOL Economia", "https://economia.uol.com.br/", "economia", 1, 1),
-            ("G1 Economia", "https://g1.globo.com/economia/", "economia", 1, 2),
-            ("Valor Econômico", "https://valor.globo.com/", "economia", 1, 3),
-            ("InfoMoney", "https://www.infomoney.com.br/", "economia", 1, 4),
+            ("InfoMoney", "https://www.infomoney.com.br/feed/", "economia", 1, 1),
+            ("G1 Economia", "https://g1.globo.com/rss/g1/", "economia", 1, 2),
         ]
         for name, url, category, is_active, priority in default_sources:
             cursor.execute(
@@ -186,14 +313,17 @@ def login_required(f):
 
 def log_action(action, details=None):
     """Registra uma ação no log."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO access_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)",
-        (session.get('user_id'), action, details, request.remote_addr)
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO access_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)",
+            (session.get('user_id'), action, details, request.remote_addr)
+        )
+        conn.commit()
+        conn.close()
+    except:
+        pass
 
 # ─── Routes: Auth ────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET', 'POST'])
@@ -216,7 +346,6 @@ def login():
             session['user_id'] = user['id']
             session['username'] = user['username']
 
-            # Atualizar último login
             cursor.execute(
                 "UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
                 (user['id'],)
@@ -247,7 +376,6 @@ def dashboard():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Estatísticas
     cursor.execute("SELECT COUNT(*) FROM access_logs")
     total_logs = cursor.fetchone()[0]
 
@@ -263,17 +391,33 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM breaking_news")
     total_breaking = cursor.fetchone()[0]
 
-    # Últimos logs
     cursor.execute("SELECT * FROM access_logs ORDER BY timestamp DESC LIMIT 10")
     recent_logs = cursor.fetchall()
 
-    # Últimas gerações
     cursor.execute("SELECT * FROM generation_logs ORDER BY created_at DESC LIMIT 5")
     recent_generations = cursor.fetchall()
 
     conn.close()
 
     log_action("view_dashboard")
+
+    # Verificar status do GitHub
+    github_status = "conectado" if GITHUB_TOKEN else "não configurado"
+    
+    # Buscar último deploy no Netlify
+    last_deploy = None
+    try:
+        from urllib.request import urlopen, Request
+        req = Request(
+            "https://api.netlify.com/api/v1/sites/4b57a611-4ba4-4759-badc-dd1ea637e495/deploys?per_page=1",
+            headers={"User-Agent": "OnzeNews-Admin"}
+        )
+        with urlopen(req, timeout=5) as resp:
+            deploys = json.loads(resp.read().decode())
+            if deploys:
+                last_deploy = deploys[0].get("created_at")
+    except:
+        pass
 
     return render_template('dashboard.html',
         total_logs=total_logs,
@@ -282,7 +426,10 @@ def dashboard():
         total_generations=total_generations,
         total_breaking=total_breaking,
         recent_logs=recent_logs,
-        recent_generations=recent_generations
+        recent_generations=recent_generations,
+        github_status=github_status,
+        github_repo=GITHUB_REPO,
+        last_deploy=last_deploy
     )
 
 # ─── Routes: Logs ────────────────────────────────────────────────────────────
@@ -292,12 +439,10 @@ def logs():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Paginação
     page = request.args.get('page', 1, type=int)
     per_page = 50
     offset = (page - 1) * per_page
 
-    # Filtros
     action_filter = request.args.get('action', '')
     user_filter = request.args.get('user', '')
 
@@ -319,21 +464,19 @@ def logs():
         query += where_clause
         count_query += where_clause
 
-    # Contar total
     cursor.execute(count_query, params)
     total = cursor.fetchone()[0]
 
-    # Buscar logs
     query += " ORDER BY al.timestamp DESC LIMIT ? OFFSET ?"
     cursor.execute(query, params + [per_page, offset])
-    logs = cursor.fetchall()
+    logs_data = cursor.fetchall()
 
     conn.close()
 
     log_action("view_logs", f"Filtros: action={action_filter}, user={user_filter}")
 
     return render_template('logs.html',
-        logs=logs,
+        logs=logs_data,
         page=page,
         per_page=per_page,
         total=total,
@@ -361,11 +504,9 @@ def schedule():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Buscar configurações
     cursor.execute("SELECT * FROM schedule_config")
     configs = {row['config_key']: row['config_value'] for row in cursor.fetchall()}
 
-    # Buscar horários
     cursor.execute("SELECT * FROM update_times ORDER BY update_time")
     times = cursor.fetchall()
 
@@ -393,6 +534,24 @@ def update_schedule():
     conn.commit()
     conn.close()
 
+    # Atualizar cron no GitHub Actions
+    if GITHUB_TOKEN:
+        # Buscar horários ativos
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT update_time FROM update_times WHERE is_active = 1 ORDER BY update_time")
+        times = [row['update_time'] for row in cursor.fetchall()]
+        conn.close()
+        
+        if times:
+            success, error = update_cron_schedule(times)
+            if success:
+                log_action("update_schedule", f"Agendamento atualizado no GitHub Actions: {times}")
+                return jsonify({"success": True, "message": "Agendamento atualizado no GitHub Actions"})
+            else:
+                log_action("update_schedule_error", f"Erro ao atualizar GitHub: {error}")
+                return jsonify({"success": False, "message": f"Erro ao atualizar GitHub: {error}"})
+    
     log_action("update_schedule", f"Configurações atualizadas: {json.dumps(data.get('configs', {}))}")
     return jsonify({"success": True, "message": "Agendamento atualizado com sucesso"})
 
@@ -406,12 +565,12 @@ def manage_times():
     cursor = conn.cursor()
 
     if action == 'add':
-        time = data.get('time')
+        time_val = data.get('time')
         cursor.execute(
             "INSERT INTO update_times (update_time, is_active) VALUES (?, ?)",
-            (time, 1)
+            (time_val, 1)
         )
-        log_action("add_time", f"Horário {time} adicionado")
+        log_action("add_time", f"Horário {time_val} adicionado")
 
     elif action == 'toggle':
         time_id = data.get('id')
@@ -433,6 +592,14 @@ def manage_times():
     times = cursor.fetchall()
     conn.close()
 
+    # Atualizar cron no GitHub Actions
+    if GITHUB_TOKEN and action in ('add', 'toggle', 'delete'):
+        active_times = [t['update_time'] for t in times if t['is_active']]
+        if active_times:
+            success, error = update_cron_schedule(active_times)
+            if success:
+                log_action("update_cron", f"Cron atualizado no GitHub: {active_times}")
+
     return jsonify({
         "success": True,
         "times": [{"id": t['id'], "time": t['update_time'], "active": bool(t['is_active'])} for t in times]
@@ -446,13 +613,13 @@ def sources():
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM news_sources ORDER BY priority, name")
-    sources = cursor.fetchall()
+    sources_data = cursor.fetchall()
 
     conn.close()
 
     log_action("view_sources")
 
-    return render_template('sources.html', sources=sources)
+    return render_template('sources.html', sources=sources_data)
 
 @app.route('/sources/add', methods=['POST'])
 @login_required
@@ -528,56 +695,62 @@ def toggle_source():
     log_action("toggle_source", f"Fonte ID {data['id']} alternada")
     return jsonify({"success": True, "message": "Status da fonte alternado"})
 
-# ─── Routes: Generation ──────────────────────────────────────────────────────
+# ─── Routes: Generation (GitHub Actions) ─────────────────────────────────────
 @app.route('/generate', methods=['POST'])
 @login_required
 def generate_newsletter():
-    """Gera o newsletter manualmente."""
-    import subprocess
-    import time
-
-    start_time = time.time()
-
-    try:
-        # Chamar o script de geração
-        result = subprocess.run(
-            ['python', os.path.join(PROJECT_DIR, 'gerar_jornal.py'), 'diario',
-             os.path.join(OUTPUT_DIR, 'secao_resumo_anterior.html'),
-             os.path.join(OUTPUT_DIR, 'secao_agenda.html'),
-             os.path.join(OUTPUT_DIR, 'secao_resumo_dia.html')],
-            capture_output=True,
-            text=True,
-            timeout=300
-        )
-
-        duration = time.time() - start_time
-
+    """Gera o newsletter via GitHub Actions."""
+    if not GITHUB_TOKEN:
+        flash('GitHub token não configurado. Configure nas variáveis de ambiente.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    log_action("generate_manual", "Geração manual solicitada via painel")
+    
+    success, error = trigger_workflow()
+    
+    if success:
+        # Registrar no log
         conn = get_db()
         cursor = conn.cursor()
-
-        if result.returncode == 0:
-            cursor.execute(
-                "INSERT INTO generation_logs (generation_type, status, message, duration_seconds) VALUES (?, ?, ?, ?)",
-                ("manual", "sucesso", result.stdout[-500:] if result.stdout else "Gerado com sucesso", duration)
-            )
-            log_action("generate_manual", f"Newsletter gerado em {duration:.1f}s")
-            flash(f'Newsletter gerado com sucesso em {duration:.1f}s!', 'success')
-        else:
-            cursor.execute(
-                "INSERT INTO generation_logs (generation_type, status, message, duration_seconds) VALUES (?, ?, ?, ?)",
-                ("manual", "erro", result.stderr[-500:] if result.stderr else "Erro desconhecido", duration)
-            )
-            log_action("generate_error", f"Erro na geração: {result.stderr[-200:]}")
-            flash(f'Erro na geração: {result.stderr[-200:]}', 'error')
-
+        cursor.execute(
+            "INSERT INTO generation_logs (generation_type, status, message) VALUES (?, ?, ?)",
+            ("manual", "executando", "Workflow disparado via painel admin")
+        )
         conn.commit()
         conn.close()
-
-    except Exception as e:
-        log_action("generate_error", f"Exceção: {str(e)}")
-        flash(f'Erro ao gerar newsletter: {str(e)}', 'error')
-
+        
+        flash('Newsletter sendo gerado! O deploy acontecerá em alguns minutos.', 'success')
+        log_action("generate_success", "Workflow disparado com sucesso")
+    else:
+        flash(f'Erro ao disparar workflow: {error}', 'error')
+        log_action("generate_error", f"Erro: {error}")
+    
     return redirect(url_for('dashboard'))
+
+@app.route('/generate/status', methods=['GET'])
+@login_required
+def generate_status():
+    """Verifica status do último workflow."""
+    if not GITHUB_TOKEN:
+        return jsonify({"error": "GitHub não configurado"})
+    
+    result = github_api(f"/repos/{GITHUB_REPO}/actions/runs?per_page=1")
+    
+    if "error" in result:
+        return jsonify(result)
+    
+    runs = result.get("workflow_runs", [])
+    if runs:
+        run = runs[0]
+        return jsonify({
+            "status": run["status"],
+            "conclusion": run.get("conclusion"),
+            "created_at": run["created_at"],
+            "updated_at": run["updated_at"],
+            "url": run["html_url"]
+        })
+    
+    return jsonify({"status": "nenhum", "conclusion": None})
 
 @app.route('/generate/breaking', methods=['POST'])
 @login_required
@@ -599,22 +772,50 @@ def generate_breaking_news():
     log_action("generate_breaking", f"Notícia extraordinária: {data['title']}")
     return jsonify({"success": True, "message": "Notícia extraordinária gerada"})
 
-# ─── Routes: API (para integração com gerar_jornal.py) ───────────────────────
+# ─── Routes: Settings ────────────────────────────────────────────────────────
+@app.route('/settings')
+@login_required
+def settings():
+    """Página de configurações do GitHub."""
+    return render_template('settings.html',
+        github_token_set=bool(GITHUB_TOKEN),
+        github_repo=GITHUB_REPO,
+        github_workflow=GITHUB_WORKFLOW
+    )
+
+@app.route('/settings/test-github', methods=['POST'])
+@login_required
+def test_github():
+    """Testa conexão com GitHub."""
+    if not GITHUB_TOKEN:
+        return jsonify({"success": False, "message": "Token não configurado"})
+    
+    result = github_api("/user")
+    
+    if "login" in result:
+        return jsonify({
+            "success": True, 
+            "message": f"Conectado como {result['login']}"
+        })
+    else:
+        return jsonify({
+            "success": False, 
+            "message": f"Erro: {result.get('error', 'Desconhecido')}"
+        })
+
+# ─── Routes: API ─────────────────────────────────────────────────────────────
 @app.route('/api/config', methods=['GET'])
 def get_config():
     """API para obter configurações atuais."""
     conn = get_db()
     cursor = conn.cursor()
 
-    # Configurações
     cursor.execute("SELECT * FROM schedule_config")
     configs = {row['config_key']: row['config_value'] for row in cursor.fetchall()}
 
-    # Horários
     cursor.execute("SELECT * FROM update_times WHERE is_active = 1 ORDER BY update_time")
     times = [row['update_time'] for row in cursor.fetchall()]
 
-    # Fontes ativas
     cursor.execute("SELECT * FROM news_sources WHERE is_active = 1 ORDER BY priority")
     sources = [{
         "id": row['id'],
@@ -658,5 +859,5 @@ if __name__ == '__main__':
     print("=" * 50)
     app.run(debug=True, host='0.0.0.0', port=5000)
 else:
-    # Para produção (Render.com, Heroku, etc.)
+    # Para produção (Vercel, Render, etc.)
     init_db()
