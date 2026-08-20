@@ -2,7 +2,7 @@ name: Gerar Newsletter Diario
 
 on:
   schedule:
-    # Todo dia as 8h de Brasilia (11:00 UTC)
+    # Gerado automaticamente pelo painel admin
     - cron: '0 11 * * *'
   workflow_dispatch:
 
