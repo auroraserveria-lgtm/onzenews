@@ -4,6 +4,7 @@ on:
   schedule:
     # Gerado automaticamente pelo painel admin
     - cron: '15 12 * * *'
+    - cron: '15 12 * * *'
   workflow_dispatch:
 
 jobs:
