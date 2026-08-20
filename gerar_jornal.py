@@ -1285,6 +1285,53 @@ def html_para_pdf(html_content: str, nome_arquivo: str) -> Path:
 
 
 # ─── Funcoes principais ──────────────────────────────────────────────────────
+def atualizar_index(nome_arquivo: str):
+    """Atualiza o index.html para redirecionar para o jornal mais recente."""
+    index_path = OUTPUT_DIR / "index.html"
+    index_html = f'''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnzeNews - Informativo Financeiro</title>
+  <meta http-equiv="refresh" content="0;url={nome_arquivo}.html">
+  <style>
+    body {{
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #003366;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }}
+    .box {{
+      background: rgba(255,255,255,0.1);
+      padding: 40px 60px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }}
+    h1 {{ font-size: 42px; margin-bottom: 10px; letter-spacing: 3px; }}
+    p {{ opacity: 0.8; font-size: 16px; }}
+    a {{ color: #7ec8e3; text-decoration: none; font-weight: bold; }}
+    a:hover {{ text-decoration: underline; }}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>ONZENEWS</h1>
+    <p>Informativo Financeiro Diario</p>
+    <p>Redirecionando para o jornal mais recente...</p>
+    <p><a href='{nome_arquivo}.html'>Clique aqui se nao redirecionar</a></p>
+  </div>
+</body>
+</html>'''
+    index_path.write_text(index_html, encoding='utf-8')
+    print(f"  [OK] index.html atualizado -> {nome_arquivo}.html")
+
+
 def gerar_jornal(resumo_anterior: str, agenda_dia: str, resumo_dia: str):
     print(f"\nGerando OnzeNews v2 - {DATA_EXTENSO}...")
     print("=" * 50)
@@ -1292,6 +1339,9 @@ def gerar_jornal(resumo_anterior: str, agenda_dia: str, resumo_dia: str):
     html = gerar_html(resumo_anterior, agenda_dia, resumo_dia)
     nome = f"OnzeNews_{HOJE.strftime('%Y-%m-%d')}"
     caminho = html_para_pdf(html, nome)
+
+    # Atualizar index.html para redirecionar para o jornal mais recente
+    atualizar_index(nome)
 
     print("=" * 50)
     print(f"[OK] Jornal gerado com sucesso!\n")
