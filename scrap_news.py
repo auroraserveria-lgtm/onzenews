@@ -183,12 +183,75 @@ def fetch_article_content(url):
 
 
 def clean_text(text):
-    """Limpa texto."""
+    """Limpa texto de ruído e spam."""
+    if not text:
+        return ""
+    
+    # Padrões de ruído para remover (mais agressivo)
+    noise_patterns = [
+        r'Gostaria de receber.*?(?=\s|$)',
+        r'Acesse seus artigos.*?(?=\s|$)',
+        r'Você tem \d+ acessos.*?(?=\s|$)',
+        r'Assinantes podem.*?(?=\s|$)',
+        r'Tem alguma sugestão.*?(?=\s|$)',
+        r'Envie para o.*?(?=\s|$)',
+        r'Leia a íntegra.*?(?=\s|$)',
+        r'\(Leia a íntegra.*?\)',
+        r'Canal do YouTube.*?(?=\s|$)',
+        r'(\?|&)utm_.*',
+        r'Assine a newsletter.*?(?=\s|$)',
+        r'Receba por e-mail.*?(?=\s|$)',
+        r'Outras notícias.*?(?=\s|$)',
+        r'Veja também.*?(?=\s|$)',
+        r'collapsed away.*?(?=\s|$)',
+        r'\.html.*?(?=\s|$)',
+        r'shareModal.*?(?=\s|$)',
+        r'principais notícias do Brasil e do mundo.*?(?=\s|$)',
+        r'salvos em Minha Folha.*?(?=\s|$)',
+        r'Acesse os artigos.*?(?=\s|$)',
+        r'àrea personalizada.*?(?=\s|$)',
+        r'por dia para dar de presente.*?(?=\s|$)',
+        r'Recurso exclusivo.*?(?=\s|$)',
+        r'seguido na Minha.*?(?=\s|$)',
+        r' slug \+ ".*?(?=\s|$)',
+        r'shareModal\(\).*?(?=\s|$)',
+        r'window\._.*?(?=\s|$)',
+        r'collapsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+        r'apsed away.*?(?=\s|$)',
+    ]
+    
+    for pattern in noise_patterns:
+        text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.DOTALL)
+    
+    # Remover The post... appeared first on...
     text = re.sub(r'The post\s+.*?appeared first on\s+\w+\s*\.?', '', text, flags=re.IGNORECASE)
     text = re.sub(r'Cr[eé]dito:\s*.*?\n?', '', text)
     text = re.sub(r'Fonte:\s*.*?\n?', '', text)
+    text = re.sub(r'Foto:\s*.*?\n?', '', text)
+    text = re.sub(r'Divulgação\s*/?\s*\w+', '', text)
+    text = re.sub(r'\d{2}/\d{2}/\d{4}\s+\d{2}h\d{2}\s+Atualizado.*?(?=\s|$)', '', text)
+    text = re.sub(r'\d+ (segundo|minuto|hora|dia|semana|mês|ano)s? atrás.*?(?=\s|$)', '', text)
+    
     text = text.replace('?', '').replace('\xa0', ' ')
     text = re.sub(r'\s+', ' ', text).strip()
+    
+    # Remover se muito curto ou se é só ruído
+    if len(text) < 50:
+        return ""
+    
+    # Verificar se o texto é majoritariamente ruído
+    noise_words = ['assunto seguido', 'minha folha', 'acesse os', 'gostaria de receber', 
+                   'principais notícias', 'slug', 'sharemodal', 'window._', 'collapsed away']
+    text_lower = text.lower()
+    noise_count = sum(1 for w in noise_words if w in text_lower)
+    if noise_count >= 2:
+        return ""
+    
     return text
 
 
@@ -196,8 +259,17 @@ class HTMLStripper(HTMLParser):
     def __init__(self):
         super().__init__()
         self.text = []
+        self.in_script = False
+        self.in_style = False
+    def handle_starttag(self, tag, attrs):
+        if tag in ('script', 'style', 'noscript'):
+            self.in_script = True
+    def handle_endtag(self, tag):
+        if tag in ('script', 'style', 'noscript'):
+            self.in_script = False
     def handle_data(self, data):
-        self.text.append(data)
+        if not self.in_script:
+            self.text.append(data)
     def get_text(self):
         return ' '.join(self.text).strip()
 
@@ -325,6 +397,37 @@ def extract_key_sentences(text, num=3):
     if not text:
         return []
     
+    # Padrões de ruído para remover antes de processar
+    noise_patterns = [
+        r'Gostaria de receber.*?(?=\s|$)',
+        r'Acesse seus artigos.*?(?=\s|$)',
+        r'Você tem \d+ acessos.*?(?=\s|$)',
+        r'Assinantes podem.*?(?=\s|$)',
+        r'Tem alguma sugestão.*?(?=\s|$)',
+        r'Envie para o.*?(?=\s|$)',
+        r'Leia a íntegra.*?(?=\s|$)',
+        r'\(Leia a íntegra.*?\)',
+        r'Canal do YouTube.*?(?=\s|$)',
+        r'(\?|&)utm_.*',
+        r'Assine a newsletter.*?(?=\s|$)',
+        r'Receba por e-mail.*?(?=\s|$)',
+        r'Outras notícias.*?(?=\s|$)',
+        r'Veja também.*?(?=\s|$)',
+        r'collapsed away.*?(?=\s|$)',
+        r'\.html.*?(?=\s|$)',
+        r'shareModal.*?(?=\s|$)',
+        r'principais notícias do Brasil e do mundo.*?(?=\s|$)',
+        r'salvos em Minha Folha.*?(?=\s|$)',
+        r'Acesse os artigos.*?(?=\s|$)',
+        r'àrea personalizada.*?(?=\s|$)',
+        r'por dia para dar de presente.*?(?=\s|$)',
+        r'Recurso exclusivo.*?(?=\s|$)',
+        r'seguido na Minha.*?(?=\s|$)',
+    ]
+    
+    for pattern in noise_patterns:
+        text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.DOTALL)
+    
     # Limpar ruídos
     text = re.sub(r'\d{2}/\d{2}/\d{4}\s+\d{2}h\d{2}\s+Atualizado.*?atrás\.?\s*', '', text)
     text = re.sub(r'Tá ouvindo.*?\?\s*', '', text)
@@ -338,6 +441,14 @@ def extract_key_sentences(text, num=3):
     text = re.sub(r'\?\s*', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
     
+    # Verificar se o texto é majoritariamente ruído
+    noise_words = ['assunto seguido', 'minha folha', 'acesse os', 'gostaria de receber', 
+                   'principais notícias', 'slug', 'sharemodal', 'window._', 'collapsed away']
+    text_lower = text.lower()
+    noise_count = sum(1 for w in noise_words if w in text_lower)
+    if noise_count >= 2:
+        return []
+    
     # Split em frases
     sentences = re.split(r'(?<=[.!?])\s+', text)
     
@@ -345,12 +456,18 @@ def extract_key_sentences(text, num=3):
     good = []
     for s in sentences:
         s = s.strip()
-        if len(s) > 40 and len(s) < 350:
+        if len(s) > 50 and len(s) < 350:
             low = s.lower()
+            # Filtrar frases que são ruído
             if not any(x in low for x in ['clique', 'leia mais', 'assine', 'foto:', 'crédito:', 
                                            'atualizado', 'segundos atrás', 'minutos atrás',
                                            'são fogos', 'depois de', 'incrível', 'compartilhe',
-                                           'assine nossa', 'newsletter', 'グループ']):
+                                           'assine nossa', 'newsletter', 'グループ',
+                                           'acesse seus', 'gostaria de receber', 'envie para',
+                                           'tem alguma sugestão', 'canal do youtube',
+                                           'collapsed away', 'window._', 'sharemodal',
+                                           'utm_', 'assinantes podem', 'principais notícias',
+                                           'minha folha', 'acesse os artigos']):
                 good.append(s)
     
     return good[:num]
@@ -366,17 +483,18 @@ def generate_resumo_anterior(categorized_news):
     # Processar notícias de economia
     economia_news = categorized_news.get('economia', [])
     count = 0
-    for n in economia_news[:4]:
+    for n in economia_news[:5]:
         content = n.get('full_content', n.get('description', ''))
         title = n['title']
         
         sentences = extract_key_sentences(content, 3)
         
-        if sentences:
-            text = ' '.join(sentences)
-            paragraphs.append(f'<p>{text}</p>')
-            count += 1
-        elif title:
+        if sentences and len(sentences) >= 2:
+            text = ' '.join(sentences[:2])
+            if len(text) > 100:
+                paragraphs.append(f'<p>{text}</p>')
+                count += 1
+        elif title and len(title) > 20:
             paragraphs.append(f'<p>{title}.</p>')
             count += 1
         
@@ -403,24 +521,24 @@ def generate_agenda(categorized_news):
     
     count = len(fixes) + 1
     
-    # Adicionar notícias de economia
+    # Adicionar notícias de economia (títulos limpos)
     for n in categorized_news.get('economia', [])[:3]:
-        title = n['title']
-        if len(title) > 15:
+        title = clean_text(n['title'])
+        if title and len(title) > 20 and len(title) < 150:
             items.append(f'<li><strong>{count}.</strong> {title}</li>')
             count += 1
     
     # Adicionar notícias de RH
     for n in categorized_news.get('rh', [])[:2]:
-        title = n['title']
-        if len(title) > 15:
+        title = clean_text(n['title'])
+        if title and len(title) > 20 and len(title) < 150:
             items.append(f'<li><strong>{count}.</strong> {title}</li>')
             count += 1
     
     # Adicionar notícias de tecnologia
     for n in categorized_news.get('tecnologia', [])[:2]:
-        title = n['title']
-        if len(title) > 15:
+        title = clean_text(n['title'])
+        if title and len(title) > 20 and len(title) < 150:
             items.append(f'<li><strong>{count}.</strong> {title}</li>')
             count += 1
     
@@ -442,13 +560,14 @@ def generate_resumo(categorized_news):
         content = n.get('full_content', n.get('description', ''))
         sentences = extract_key_sentences(content, 3)
         
-        if sentences:
-            text = ' '.join(sentences)
-            paragraphs.append(f'<p>{text}</p>')
-            count += 1
+        if sentences and len(sentences) >= 2:
+            text = ' '.join(sentences[:2])
+            if len(text) > 100:
+                paragraphs.append(f'<p>{text}</p>')
+                count += 1
     
     if count == 0:
-        paragraphs.append('<p>Mercado operando com volatildade moderada, investidores avaliam cenário macroeconômico.</p>')
+        paragraphs.append('<p>Mercado operando com volatilidade moderada, investidores avaliam cenário macroeconômico.</p>')
     
     # ─── RH / NR-1 ───
     rh_news = categorized_news.get('rh', [])
@@ -459,10 +578,11 @@ def generate_resumo(categorized_news):
             content = n.get('full_content', n.get('description', ''))
             sentences = extract_key_sentences(content, 3)
             
-            if sentences:
-                text = ' '.join(sentences)
-                paragraphs.append(f'<p>{text}</p>')
-                count += 1
+            if sentences and len(sentences) >= 2:
+                text = ' '.join(sentences[:2])
+                if len(text) > 100:
+                    paragraphs.append(f'<p>{text}</p>')
+                    count += 1
         
         if count == 0:
             paragraphs.append('<p>Setor de RH acompanha atualizações da NR-1 e novas diretrizes de saúde mental no trabalho.</p>')
@@ -476,10 +596,11 @@ def generate_resumo(categorized_news):
             content = n.get('full_content', n.get('description', ''))
             sentences = extract_key_sentences(content, 3)
             
-            if sentences:
-                text = ' '.join(sentences)
-                paragraphs.append(f'<p>{text}</p>')
-                count += 1
+            if sentences and len(sentences) >= 2:
+                text = ' '.join(sentences[:2])
+                if len(text) > 100:
+                    paragraphs.append(f'<p>{text}</p>')
+                    count += 1
         
         if count == 0:
             paragraphs.append('<p>Setor tecnológico segue em expansão com foco em IA e transformação digital.</p>')
