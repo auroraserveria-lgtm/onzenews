@@ -21,18 +21,17 @@ RSS_FEEDS = {
     "economia": [
         ("InfoMoney", "https://www.infomoney.com.br/feed/"),
         ("G1 Economia", "https://g1.globo.com/rss/g1/"),
-        ("UOL Economia", "https://economia.uol.com.br/rss.xml"),
         ("Investing.com", "https://br.investing.com/rss/news.rss"),
     ],
     "rh": [
-        ("folha.uol.com.br", "https://feeds.folha.uol.com.br/mercado/rss091.xml"),
+        ("Valor Econômico", "https://valor.globo.com/rss.xml"),
+        ("Você RH", "https://vocerh.abril.com.br/feed/"),
         ("R7 Negócios", "https://noticias.r7.com/paraiba/portal-correio/rss.xml"),
-        ("ABRH-SP", "https://abrhsp.org.br/feed/"),
     ],
     "tecnologia": [
-        ("G1 Tecnologia", "https://g1.globo.com/rss/g1/tecnologia/"),
-        ("InfoMoney Tech", "https://www.infomoney.com.br/feed/"),
         ("Finsiders", "https://finsidersbrasil.com.br/feed/"),
+        ("InfoMoney", "https://www.infomoney.com.br/feed/"),
+        ("BCB Noticias", "https://www.bcb.gov.br/rss/noticias"),
     ],
 }
 
@@ -59,7 +58,7 @@ CATEGORY_KEYWORDS = {
         'bolsa', 'financeiro', 'bitcoin', 'cripto', 'fintech', 'empresas',
         'banco', 'crédito', 'economia', 'tesouro', 'renda', 'fundos',
         'petróleo', 'energia', 'wall street', 'nasdaq', 'fed', 'fomc', 'copom',
-        'recompra', 'títulos', 'soberania', 'risco', ' spread', 'creditício',
+        'recompra', 'títulos', 'soberania', 'risco', 'spread', 'creditício',
     ],
     "rh": [
         'nr-1', 'nr1', 'norma regulamentadora', 'saúde mental', 'trabalho',
@@ -68,13 +67,22 @@ CATEGORY_KEYWORDS = {
         'capacitação', 'treinamento', 'desenvolvimento', 'carreira',
         'rotatividade', 'absenteísmo', 'engajamento', 'clima organizacional',
         'pgr', 'gro', 'sst', 'segurança do trabalho', 'medicina do trabalho',
+        'gestão de pessoas', 'recrutamento', 'seleção', 'remuneração',
+        'benefícios', 'qualidade de vida', 'trabalho remoto', 'home office',
+        'trabalho híbrido', 'turnover', 'inss', 'afastamento', 'licença',
+        'empregador', 'emprego', 'contratação', 'liderança', 'gestão',
+        'time management', 'assédio moral', 'psicossocial', 'adoecimento',
     ],
     "tecnologia": [
-        'inteligência artificial', 'ia', 'machine learning', 'blockchain',
-        'fintech', 'open finance', 'pix', 'pagamento', 'digital',
-        'criptomoeda', 'bitcoin', 'ethereum', 'web3', 'defi',
-        'cloud', 'software', 'hardware', 'cibersegurança', 'dados',
-        'startup', 'inovação', 'transformação digital', 'automação',
+        'fintech', 'banco digital', 'open finance', 'pix', 'pagamento digital',
+        'blockchain', 'criptomoeda', 'bitcoin', 'ethereum', 'web3', 'defi',
+        'carteira digital', 'investimento digital', 'corretora digital',
+        'insurtech', 'wealthtech', 'regtech', 'credittech',
+        'neobanco', 'nubank', 'inter', 'c6 bank', 'picpay', 'mercadopago',
+        'api financeira', 'banking', 'pagamento instantâneo',
+        'cartão digital', 'crédito digital', 'tokenização', 'stablecoin',
+        'drex', 'cbdc', 'ativos digitais', 'b3', 'sistema financeiro',
+        'transferência', 'débito automático', 'pix automático',
     ],
 }
 
@@ -216,13 +224,22 @@ def clean_text(text):
         r' slug \+ ".*?(?=\s|$)',
         r'shareModal\(\).*?(?=\s|$)',
         r'window\._.*?(?=\s|$)',
-        r'collapsed away.*?(?=\s|$)',
         r'apsed away.*?(?=\s|$)',
-        r'apsed away.*?(?=\s|$)',
-        r'apsed away.*?(?=\s|$)',
-        r'apsed away.*?(?=\s|$)',
-        r'apsed away.*?(?=\s|$)',
-        r'apsed away.*?(?=\s|$)',
+        r'Assine a Folha.*?(?=\s|$)',
+        r'Assine o UOL.*?(?=\s|$)',
+        r'Acesse o UOL.*?(?=\s|$)',
+        r'Leia mais em.*?(?=\s|$)',
+        r'Crédito da imagem.*?(?=\s|$)',
+        r'Foto:\s*.*?(?=\s|$)',
+        r'Imagem:\s*.*?(?=\s|$)',
+        r'Fonte:\s*.*?(?=\s|$)',
+        r'Reprodução/Facebook.*?(?=\s|$)',
+        r'Siga o.*?(?=\s|$)',
+        r'Compartilhe.*?(?=\s|$)',
+        r'Copiar link.*?(?=\s|$)',
+        r'00:00.*?(?=\s|$)',
+        r'Atualizado em.*?(?=\s|$)',
+        r'Publicado em.*?(?=\s|$)',
     ]
     
     for pattern in noise_patterns:
@@ -246,7 +263,9 @@ def clean_text(text):
     
     # Verificar se o texto é majoritariamente ruído
     noise_words = ['assunto seguido', 'minha folha', 'acesse os', 'gostaria de receber', 
-                   'principais notícias', 'slug', 'sharemodal', 'window._', 'collapsed away']
+                   'principais notícias', 'slug', 'sharemodal', 'window._', 'collapsed away',
+                   'copiar link', 'compartilhe', 'siga o', 'reprodução/facebook',
+                   'crédito da imagem', 'foto:', 'imagem:', 'fonte:']
     text_lower = text.lower()
     noise_count = sum(1 for w in noise_words if w in text_lower)
     if noise_count >= 2:
