@@ -33,9 +33,18 @@ jobs:
       - name: Gerar newsletter
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
-      - name: Deploy to Vercel
+      - name: Link Vercel project
         working-directory: ./output
         run: |
           rm -rf .vercel
-          echo '{}' > vercel.json
-          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+          vercel link --yes --token=${{ secrets.VERCEL_TOKEN }} --project=onzenews-public
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        working-directory: ./output
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
