@@ -32,12 +32,8 @@ jobs:
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3
-        with:
-          publish-dir: './output'
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy automatico"
+        run: |
+          npm install -g netlify-cli
+          netlify deploy --dir=./output --prod --site-id=${{ secrets.NETLIFY_SITE_ID }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
