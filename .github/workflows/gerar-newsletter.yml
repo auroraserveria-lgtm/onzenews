@@ -24,9 +24,6 @@ jobs:
           pip install playwright edge-tts
           playwright install chromium --with-deps
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
       - name: Coletar noticias
         run: python scrap_news.py
 
@@ -34,10 +31,7 @@ jobs:
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
       - name: Deploy to Vercel
-        run: |
-          rm -rf .vercel
-          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --scope=alexandre-projects1
-        working-directory: ./output
+        run: python deploy_vercel.py
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
