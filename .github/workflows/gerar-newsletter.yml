@@ -33,15 +33,10 @@ jobs:
       - name: Gerar newsletter
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
-      - name: Link Vercel project
-        run: vercel link --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./output
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
       - name: Deploy to Vercel
-        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          rm -rf .vercel
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --scope=alexandre-projects1
         working-directory: ./output
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

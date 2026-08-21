@@ -44,3 +44,6 @@ Desktop.ini
 # Node (for Vercel)
 node_modules/
 .vercel
+
+.vercel
+output/.vercel
