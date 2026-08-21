@@ -33,6 +33,14 @@ jobs:
       - name: Gerar newsletter
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
+      - name: Commit podcast + PDF ao repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/podcast/*.mp3 output/*.pdf output/*.html
+          git diff --cached --quiet || git commit -m "chore: atualiza podcast e newsletter $(date +'%Y-%m-%d')"
+          git push
+
       - name: Link Vercel project
         working-directory: ./output
         run: |
