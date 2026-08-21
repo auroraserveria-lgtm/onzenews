@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnzeNews — 21/08/2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul-royal: #003366;
+      --azul-escuro: #001a33;
+      --azul-medio: #0055aa;
+      --azul-bebe: #d4eaf7;
+      --azul-claro: #e8f4f8;
+      --dourado: #c9a84c;
+      --vermelho: #b71c1c;
+      --texto: #1a1a2e;
+      --texto-secundario: #4a5568;
+      --borda: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+      background: #f5f0e8;
+      color: var(--texto);
+      line-height: 1.7;
+    }
+
+    .jornal {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 0 40px rgba(0,0,0,0.15);
+    }
+
+    /* ═══ MASTRONE ═══ */
+    .mastrone {
+      background: var(--azul-royal);
+      color: #fff;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mastrone-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 30px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .mastrone-principal {
+      text-align: center;
+      padding: 30px 30px 25px;
+    }
+
+    .mastrone-titulo {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 6px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .mastrone-titulo span {
+      color: var(--dourado);
+    }
+
+    .mastrone-sub {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 15px;
+    }
+
+    .mastrone-linha {
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--dourado), transparent);
+      margin: 0 auto;
+      width: 60%;
+    }
+
+    .mastrone-data {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+      padding: 10px 30px;
+      text-align: center;
+      opacity: 0.7;
+      letter-spacing: 1px;
+    }
+
+    /* ═══ BARRA DE MERCADO ═══ */
+    .barra-mercado {
+      background: var(--azul-escuro);
+      color: #fff;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+      border-bottom: 2px solid var(--dourado);
+    }
+
+    .item-mercado {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-mercado .nome {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .item-mercado .valor {
+      font-weight: 700;
+    }
+
+    .item-mercado .variacao {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .variacao.up { background: rgba(46, 125, 50, 0.3); color: #81c784; }
+    .variacao.down { background: rgba(198, 40, 40, 0.3); color: #ef9a9a; }
+
+    /* ═══ PLAYER ═══ */
+    .player-bar {
+      background: linear-gradient(135deg, var(--azul-medio), var(--azul-royal));
+      padding: 14px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      border-bottom: 1px solid var(--borda);
+    }
+
+    .btn-player {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Source Sans 3', sans-serif;
+      backdrop-filter: blur(5px);
+    }
+
+    .btn-player:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(1.03);
+    }
+
+    .btn-player .icone { font-size: 18px; }
+
+    .btn-player.tocando {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+    }
+
+    .player-info {
+      color: rgba(255,255,255,0.8);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+    }
+
+    /* ═══ CONTEUDO ═══ */
+    .conteudo {
+      padding: 30px;
+    }
+
+    /* ═══ COLUNAS ═══ */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .coluna-principal { min-width: 0; }
+    .coluna-lateral { min-width: 0; }
+
+    /* ═══ SECOES ═══ */
+    .secao {
+      margin-bottom: 28px;
+      page-break-inside: avoid;
+    }
+
+    .secao-cabecalho {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--azul-royal);
+    }
+
+    .secao-icone {
+      width: 36px;
+      height: 36px;
+      background: var(--azul-royal);
+      color: #fff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .secao-titulo {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--azul-royal);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .secao-subtitulo {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 12px;
+      color: var(--texto-secundario);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .secao-texto {
+      font-size: 14.5px;
+      line-height: 1.8;
+      color: var(--texto);
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    .secao-texto p {
+      margin-bottom: 14px;
+      text-indent: 2em;
+    }
+
+    .secao-texto p:first-child {
+      text-indent: 0;
+    }
+
+    .secao-texto p:first-child::first-letter {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 3.2em;
+      float: left;
+      line-height: 0.8;
+      margin: 4px 10px 0 0;
+      color: var(--azul-royal);
+      font-weight: 700;
+    }
+
+    /* ═══ AGENDA ═══ */
+    .agenda-lista {
+      list-style: none;
+      padding: 0;
+    }
+
+    .agenda-lista li {
+      padding: 10px 0 10px 32px;
+      position: relative;
+      border-bottom: 1px solid var(--borda);
+      font-size: 13.5px;
+      font-family: 'Source Sans 3', sans-serif;
+      line-height: 1.5;
+    }
+
+    .agenda-lista li:last-child { border-bottom: none; }
+
+    .agenda-lista li::before {
+      content: attr(data-num);
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 22px;
+      height: 22px;
+      background: var(--azul-royal);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .agenda-hora {
+      font-weight: 700;
+      color: var(--azul-royal);
+    }
+
+    /* ═══ MANCHETE DESTAQUE ═══ */
+    .manchete-destaque {
+      background: var(--azul-claro);
+      border-left: 5px solid var(--azul-royal);
+      padding: 20px 24px;
+      margin-bottom: 25px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .manchete-destaque h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--azul-royal);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .manchete-destaque .chapeu {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--vermelho);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    /* ═══ LATERAL ═══ */
+    .lateral-box {
+      background: var(--azul-claro);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .lateral-titulo {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--azul-royal);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--dourado);
+    }
+
+    .lateral-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,51,102,0.1);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .lateral-item:last-child { border-bottom: none; }
+
+    .lateral-item strong {
+      color: var(--azul-royal);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ═══ DIVISORIA ═══ */
+    .divisoria {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--borda), transparent);
+      margin: 25px 0;
+    }
+
+    .divisoria-dupla {
+      height: 4px;
+      border-top: 1px solid var(--borda);
+      border-bottom: 1px solid var(--borda);
+      margin: 25px 0;
+    }
+
+    /* ═══ RODAPE ═══ */
+    .rodape {
+      background: var(--azul-escuro);
+      color: rgba(255,255,255,0.6);
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 11px;
+    }
+
+    .rodape strong { color: var(--dourado); }
+
+    /* ═══ EXTRA ═══ */
+    .extra-banner {
+      background: var(--vermelho);
+      color: #fff;
+      text-align: center;
+      padding: 14px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 4px;
+    }
+
+    /* ═══ PODCAST PLAYER ═══ */
+    .podcast-section {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      margin: 0 30px 30px;
+      padding: 24px;
+      color: #fff;
+    }
+
+    .podcast-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .podcast-cover {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--azul-royal), var(--azul-medio));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .podcast-icon { font-size: 28px; }
+
+    .podcast-info { flex: 1; }
+
+    .podcast-label {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--dourado);
+      margin-bottom: 4px;
+    }
+
+    .podcast-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .podcast-meta {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 12px;
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
+    .podcast-duration {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px;
+      color: var(--dourado);
+      font-weight: 600;
+    }
+
+    .podcast-player {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .podcast-btn-play {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--dourado);
+      color: #1a1a2e;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .podcast-btn-play:hover {
+      transform: scale(1.1);
+      background: #d4b85a;
+    }
+
+    .podcast-btn-play.playing {
+      background: var(--vermelho);
+      color: #fff;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(183, 28, 28, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(183, 28, 28, 0); }
+    }
+
+    .podcast-progress-area {
+      flex: 1;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .podcast-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .podcast-progress-fill {
+      height: 100%;
+      background: var(--dourado);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .podcast-progress-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--dourado);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      left: 0%;
+      transition: left 0.3s;
+      display: none;
+    }
+
+    .podcast-progress-area:hover .podcast-progress-thumb {
+      display: block;
+    }
+
+    .podcast-time {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      min-width: 90px;
+      text-align: right;
+    }
+
+    .podcast-speakers {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+      padding: 16px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .podcast-speaker {
+      text-align: center;
+      opacity: 0.4;
+      transition: all 0.3s;
+    }
+
+    .podcast-speaker.active {
+      opacity: 1;
+    }
+
+    .speaker-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 auto 8px;
+      transition: all 0.3s;
+    }
+
+    .speaker-avatar.aurora {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+    }
+
+    .speaker-avatar.ricardo {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff;
+    }
+
+    .podcast-speaker.active .speaker-avatar {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(201, 168, 76, 0.4);
+    }
+
+    .speaker-name {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .speaker-role {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    .podcast-transcript {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 16px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .podcast-transcript::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .podcast-transcript::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .podcast-transcript::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+    }
+
+    .transcript-line {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .transcript-line.aurora strong { color: #667eea; }
+    .transcript-line.ricardo strong { color: #f5576c; }
+    .transcript-line.info { color: rgba(255,255,255,0.4); font-style: italic; text-align: center; }
+
+    /* ═══ RESPONSIVO ═══ */
+    @media (max-width: 768px) {
+      .mastrone-titulo { font-size: 36px; letter-spacing: 2px; }
+      .mastrone-sub { font-size: 11px; letter-spacing: 2px; }
+      .mastrone-data { font-size: 11px; padding: 8px 15px; }
+      .grid-2col { grid-template-columns: 1fr; gap: 20px; }
+      .grid-3col { grid-template-columns: 1fr; }
+      .barra-mercado { flex-wrap: wrap; gap: 10px; padding: 8px 15px; font-size: 11px; }
+      .conteudo { padding: 15px; }
+      .secao-titulo { font-size: 18px; }
+      .secao-texto { font-size: 13.5px; }
+      .manchete-destaque h2 { font-size: 20px; }
+      .lateral-box { padding: 15px; }
+
+      /* Podcast responsivo */
+      .podcast-section { margin: 0 15px 20px; padding: 16px; }
+      .podcast-header { flex-wrap: wrap; gap: 12px; }
+      .podcast-cover { width: 50px; height: 50px; }
+      .podcast-icon { font-size: 22px; }
+      .podcast-title { font-size: 16px; }
+      .podcast-player { gap: 10px; }
+      .podcast-btn-play { width: 42px; height: 42px; font-size: 16px; }
+      .podcast-time { font-size: 11px; min-width: 70px; }
+      .podcast-speakers { gap: 25px; }
+      .speaker-avatar { width: 46px; height: 46px; font-size: 18px; }
+      .podcast-transcript { max-height: 150px; font-size: 12px; padding: 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .mastrone-titulo { font-size: 28px; letter-spacing: 1px; }
+      .mastrone-sub { font-size: 10px; }
+      .barra-mercado { font-size: 10px; gap: 8px; }
+      .item-mercado { gap: 4px; }
+      .secao-cabecalho { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .podcast-section { margin: 0 10px 15px; padding: 12px; }
+      .podcast-speakers { gap: 20px; }
+      .speaker-avatar { width: 40px; height: 40px; font-size: 16px; }
+      .speaker-name { font-size: 12px; }
+      .podcast-transcript { max-height: 120px; font-size: 11px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .jornal { box-shadow: none; }
+      .podcast-section { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="jornal">
+
+  <!-- MASTRONE -->
+  <header class="mastrone">
+    <div class="mastrone-principal">
+      <div class="mastrone-sub">Informativo Financeiro Diario</div>
+      <h1 class="mastrone-titulo">ONZE<span>NEWS</span></h1>
+      <div class="mastrone-linha"></div>
+    </div>
+    <div class="mastrone-data">Sexta-feira, 21 de agosto de 2026 | Horario de Brasilia</div>
+  </header>
+
+  <!-- BARRA DE MERCADO -->
+  <div class="barra-mercado">
+    <div class="item-mercado">
+      <span class="nome">Dolar</span>
+      <span class="valor">R$ 5,17</span>
+      <span class="variacao down">-0,96%</span>
+    </div>
+    <div class="item-mercado">
+      <span class="nome">Euro</span>
+      <span class="valor">R$ 6,03</span>
+      <span class="variacao down">-0,23%</span>
+    </div>
+    <div class="item-mercado">
+      <span class="nome">Ibovespa</span>
+      <span class="valor">169.642 pts</span>
+      <span class="variacao up">+1,99%</span>
+    </div>
+    <div class="item-mercado">
+      <span class="nome">Selic</span>
+      <span class="valor">15,00%</span>
+      <span class="variacao" style="background:rgba(255,255,255,0.1);color:#fff">ao ano</span>
+    </div>
+  </div>
+
+  <!-- PLAYER DE PODCAST REMOVIDO — USANDO PLAYER CONVERSACIONAL ABAIXO -->
+
+  <!-- CONTEUDO -->
+  <div class="conteudo" id="conteudo-jornal">
+
+    <!-- MANCHETE DESTAQUE -->
+    <div class="manchete-destaque">
+      <div class="chapeu">Editoria Economia</div>
+      <h2>Tesouro dos EUA dobra recompra de titulos longos e acalma mercados globais</h2>
+    </div>
+
+    <!-- GRID 2 COLUNAS -->
+    <div class="grid-2col">
+
+      <!-- COLUNA PRINCIPAL -->
+      <div class="coluna-principal">
+
+        <!-- SECAO 1: RESUMO DO DIA ANTERIOR -->
+        <div class="secao">
+          <div class="secao-cabecalho">
+            <div class="secao-icone">&#128197;</div>
+            <div>
+              <div class="secao-titulo">Resumo do Dia Anterior</div>
+              <div class="secao-subtitulo">O que aconteceu ontem</div>
+            </div>
+          </div>
+          <div class="secao-texto">
+            <p>O mercado financeiro no dia 20/08/2026 apresentou as seguintes movimentações:</p>
+<p>Em Londres, o FTSE 100 fechou em alta de 0,64%, a 10.816,56 pontos. Em Frankfurt, o DAX ganhou 0,56%, a 26.128,55 pontos.</p>
+<p>A discussão ganhou força após o Discord desativar as transmissões ao vivo para usuários no Brasil, cumprindo determinação da Agência Nacional de Proteção de Dados (ANPD). A medida entrou em vigor nesta terça-feira (18) e mantém apenas as lives bloqueadas, enquanto as demais funcionalidades da plataforma continuam operando normalmente.</p>
+<p>Na sessão desta sexta-feira (19), o índice brasileiro sobe cerca de 2% e se aproxima dos 172 mil. Com o movimento, o Ibov bate, até o momento, alta de 2,5% na semana.</p>
+<p>Bolsas dos EUA avançam juntas, mas continuam a caminho de queda semanal O KNRI11 fechou a venda do Centro de Distribuição Sumaré (SP). Os ministros das Relações Exteriores de Omã e Irã discutiram, em uma conversa por telefone, formas de criar condições adequadas para retomar o diálogo e as negociações, bem como os acontecimentos que afetam a navegação no Estreito de Ormuz, informou a agência de notícias estatal de Omã nesta sexta-feira.</p>
+          </div>
+        </div>
+
+        <div class="divisoria-dupla"></div>
+
+        <!-- SECAO 3: RESUMO DO DIA -->
+        <div class="secao">
+          <div class="secao-cabecalho">
+            <div class="secao-icone">&#128240;</div>
+            <div>
+              <div class="secao-titulo">Resumo do Dia</div>
+              <div class="secao-subtitulo">Principais noticias de hoje</div>
+            </div>
+          </div>
+          <div class="secao-texto">
+            <p>Bom dia! Hoje é 21 de agosto de 2026. Veja o que está movimentando o mercado financeiro e os principais setores.</p>
+<p><strong>Mercado Financeiro:</strong></p>
+<p>Em Londres, o FTSE 100 fechou em alta de 0,64%, a 10.816,56 pontos. Em Frankfurt, o DAX ganhou 0,56%, a 26.128,55 pontos.</p>
+<p>A discussão ganhou força após o Discord desativar as transmissões ao vivo para usuários no Brasil, cumprindo determinação da Agência Nacional de Proteção de Dados (ANPD). A medida entrou em vigor nesta terça-feira (18) e mantém apenas as lives bloqueadas, enquanto as demais funcionalidades da plataforma continuam operando normalmente.</p>
+<p>Na sessão desta sexta-feira (19), o índice brasileiro sobe cerca de 2% e se aproxima dos 172 mil. Com o movimento, o Ibov bate, até o momento, alta de 2,5% na semana.</p>
+<p>Bolsas dos EUA avançam juntas, mas continuam a caminho de queda semanal O KNRI11 fechou a venda do Centro de Distribuição Sumaré (SP). Os ministros das Relações Exteriores de Omã e Irã discutiram, em uma conversa por telefone, formas de criar condições adequadas para retomar o diálogo e as negociações, bem como os acontecimentos que afetam a navegação no Estreito de Ormuz, informou a agência de notícias estatal de Omã nesta sexta-feira.</p>
+<p><strong>RH e Gestão de Pessoas:</strong></p>
+<p>A plataforma de marketplace Shopee anunciou a abertura das inscrições para o Programa de Trainee 2027. Com vagas em São Paulo, a iniciativa tem como objetivo transformar jovens profissionais em protagonistas do futuro do e-commerce, oferecendo uma jornada imersiva e cheia de aprendizados práticos.</p>
+<p>Saber o que valor que entrega e fazer com que ele seja percebido. Essa lógica de pensar como marca, segundo Max Satiro, fundador do Sócio Estratégico, não é tarefa exclusiva para empreendedores , mas também para quem trabalha dentro de uma organização.</p>
+<p>Segundo o Fórum Econômico Mundial , pensamento analítico segue como a competência mais valorizada pelas empresas, seguido por resiliência e por liderança e influência social. O mesmo relatório mostra que quatro em cada dez habilidades que um profissional tem hoje vão ficar defasadas até 2030.</p>
+<p><strong>Tecnologia e Inovação:</strong></p>
+<p>A Associação Brasileira de Crédito Digital ( ABCD ) trocou novamente o comando de sua diretoria neste ano. Marcelo vinha ocupando o cargo de 1º vice-presidente da ABCD.</p>
+<p>Início Tendências em pagamentos >> Esta é a quinta de uma série de seis reportagens sobre tendências em pagamentos que serão publicados no Finsiders Brasil . Em 1989, um homem desce de um táxi que voa sobre as ruas.</p>
+<p>A Pomelo , companhia de infraestrutura que permite a bancos e empresas emitir e processar cartões, anunciou a contratação de Abdul Assal para o cargo de gerente geral de ‘ Global Card ‘. Abdul vai liderar a estratégia comercial global da companhia e ficará responsável por acelerar a adoção da infraestrutura de pagamentos da Pomelo em novos mercados.</p>
+<p>Essas são as principais notícias do dia. Fique atento para mais atualizações ao longo do dia.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUNA LATERAL -->
+      <div class="coluna-lateral">
+
+        <!-- AGENDA -->
+        <div class="lateral-box">
+          <div class="lateral-titulo">&#128198; Agenda do Dia</div>
+          <ul>
+<li><strong>1.</strong> Mercado financeiro brasileiro abre às 10h (horário de Brasília)</li>
+<li><strong>2.</strong> Indicadores econômicos serão divulgados ao longo do dia</li>
+<li><strong>3.</strong> Bolsas da Europa fecham em alta com PMIs e de olho em Oriente Médio</li>
+<li><strong>4.</strong> “Riscos mudaram de endereço”: especialista alerta para ameaças a crianças na internet</li>
+<li><strong>5.</strong> Ibovespa sobe mais de 2% e se aproxima dos 172 mil pontos, com Vale e bancos</li>
+<li><strong>6.</strong> Shopee abre inscrições para programa de trainee com foco em negócios e liderança</li>
+<li><strong>7.</strong> Mindset empreendedor: por que profissionais precisam pensar como marcas</li>
+<li><strong>8.</strong> ABCD, de crédito digital, troca comando após seis meses; Marcelo Buosi assume</li>
+<li><strong>9.</strong> Palma da mão quer virar carteira, mas esbarra no conforto do Pix</li>
+</ul>
+        </div>
+
+        <!-- FONTES -->
+        <div class="lateral-box">
+          <div class="lateral-titulo">&#128214; Fontes</div>
+          <div class="lateral-item"><strong>UOL Economia</strong>economia.uol.com.br</div>
+          <div class="lateral-item"><strong>G1 Economia</strong>g1.globo.com/economia</div>
+          <div class="lateral-item"><strong>Valor Economico</strong>valor.globo.com</div>
+          <div class="lateral-item"><strong>InfoMoney</strong>infomoney.com.br</div>
+        </div>
+
+        <!-- MERCADO AGORA -->
+        <div class="lateral-box" style="background: var(--azul-royal); color: #fff;">
+          <div class="lateral-titulo" style="color: var(--dourado); border-color: rgba(255,255,255,0.2);">Mercado Agora</div>
+          <div class="lateral-item" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);">
+            <strong style="color: var(--dourado);">Petrobras (PETR4)</strong>
+            R$ 43,83 (+2,89%)
+          </div>
+          <div class="lateral-item" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);">
+            <strong style="color: var(--dourado);">Vale (VALE3)</strong>
+            R$ 73,68 (+2,98%)
+          </div>
+          <div class="lateral-item" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);">
+            <strong style="color: var(--dourado);">Itau (ITUB4)</strong>
+            R$ 38,52 (+0,86%)
+          </div>
+          <div class="lateral-item" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);">
+            <strong style="color: var(--dourado);">Bradesco (BBDC4)</strong>
+            R$ 16,28 (+0,99%)
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- RODAPE -->
+  <footer class="rodape">
+    <span><strong>OnzeNews</strong> — Informativo Financeiro Diario</span>
+    <span>Gerado em 21/08/2026 as 17:14</span>
+  </footer>
+
+</div>
+
+<!-- PODCAST PLAYER — AUDIO REAL -->
+<div class="podcast-section" id="podcastSection">
+  <div class="podcast-header">
+    <div class="podcast-cover">
+      <div class="podcast-icon">&#127911;</div>
+    </div>
+    <div class="podcast-info">
+      <div class="podcast-label">PODCAST</div>
+      <div class="podcast-title">OnzeNews Audio</div>
+      <div class="podcast-meta">Sexta-feira, 21 de agosto de 2026</div>
+    </div>
+    <div class="podcast-duration" id="podcastDuration">--:--</div>
+  </div>
+
+  <div class="podcast-player">
+    <button class="podcast-btn-play" id="podcastBtnPlay" onclick="podcastToggle()">
+      <span id="podcastIconPlay">&#9654;</span>
+    </button>
+    <div class="podcast-progress-area" id="podcastProgressArea">
+      <div class="podcast-progress-bar">
+        <div class="podcast-progress-fill" id="podcastProgressFill"></div>
+        <div class="podcast-progress-thumb" id="podcastProgressThumb"></div>
+      </div>
+    </div>
+    <div class="podcast-time" id="podcastTime">0:00 / 0:00</div>
+  </div>
+
+  <div class="podcast-speakers">
+    <div class="podcast-speaker active" id="speakerAurora">
+      <div class="speaker-avatar aurora">A</div>
+      <div class="speaker-name">Aurora</div>
+      <div class="speaker-role">Apresentadora</div>
+    </div>
+    <div class="podcast-speaker" id="speakerRicardo">
+      <div class="speaker-avatar ricardo">R</div>
+      <div class="speaker-name">Ricardo</div>
+      <div class="speaker-role">Analista</div>
+    </div>
+  </div>
+
+  <div class="podcast-transcript" id="podcastTranscript">
+    <div class="transcript-line info">Clique em Play para ouvir a conversa sobre as noticias de hoje...</div>
+  </div>
+</div>
+
+<script>
+// ═══ PODCAST — AUDIO REAL (Edge TTS) ═══
+const podcastManifesto = [{"speaker": "Aurora", "text": "Olá! Sejam muito bem-vindos ao OnzeNews Áudio, o podcast do nosso informativo financeiro diário. Hoje é Sexta-feira, 21 de agosto de 2026. Eu sou a Aurora e estou aqui com o Ricardo, nosso analista de mercados. Ricardo, bom dia!", "file": "podcast/seg_000.mp3", "duration": 15.6}, {"speaker": "Ricardo", "text": "Bom dia, Aurora! Obrigado pelo convite. Temos um dia bem movimentado pela frente no mercado financeiro.", "file": "podcast/seg_001.mp3", "duration": 6.4}, {"speaker": "Aurora", "text": "Ótimo! Então vamos começar pelo que aconteceu ontem. Ricardo, quais foram os principais acontecimentos?", "file": "podcast/seg_002.mp3", "duration": 5.6}, {"speaker": "Ricardo", "text": "Ontem foi um dia bem tenso no varejo. A Casas Bahia entrou com pedido de recuperação judicial com passivos de R$ 17,3 bilhões. A empresa já vinha de dificuldades há tempo, com prejuízos em 20 dos 30 últimos trimestres. A situação se agravou com a impossibilidade de captar novos recursos e a restrição de crédito por parte de fornecedores e seguradoras.", "file": "podcast/seg_003.mp3", "duration": 24.4}, {"speaker": "Aurora", "text": "E no setor bancário?", "file": "podcast/seg_004.mp3", "duration": 1.6}, {"speaker": "Ricardo", "text": "O C6 Bank fechou o primeiro semestre com lucro de R$ 1,25 bilhão, alta de 20%. Um resultado positivo em meio ao cenário desafiador. Já os estrangeiros fizeram o maior saque semanal da B3 desde 2008, mostrando a aversão a risco global dos investidores internacionais.", "file": "podcast/seg_005.mp3", "duration": 18.0}, {"speaker": "Aurora", "text": "E tem mais notícias do setor, não é?", "file": "podcast/seg_006.mp3", "duration": 3.2}, {"speaker": "Ricardo", "text": "Sim! A Braskem Idesa entrou com pedido de recuperação judicial nos EUA sob o Capítulo 11. A Oncoclínicas teve prejuízo quadruplicado, chegando a R$ 275 milhões. Já a Vibra Energia foi destaque positivo com lucro de R$ 2,29 bilhões, alta espantosa de 365%.", "file": "podcast/seg_007.mp3", "duration": 17.2}, {"speaker": "Aurora", "text": "Agora vamos falar sobre a agenda de hoje. O que os investidores devem acompanhar?", "file": "podcast/seg_008.mp3", "duration": 5.6}, {"speaker": "Ricardo", "text": "O grande destaque é a divulgação da ata da última reunião do Federal Reserve, o FOMC, às 15 horas de Brasília. Esse documento vai mostrar como os membros do comitê avaliaram o cenário e pode dar pistas sobre os próximos passos dos juros americanos. É um evento de altíssimo impacto para os mercados globais.", "file": "podcast/seg_009.mp3", "duration": 21.6}, {"speaker": "Aurora", "text": "E aqui no Brasil?", "file": "podcast/seg_010.mp3", "duration": 1.6}, {"speaker": "Ricardo", "text": "A FGV divulga o IGP-M do segundo decênio de agosto pela manhã. A tarde, o Banco Central revela o fluxo cambial estrangeiro semanal. E também tem leilão de títulos de 20 anos nos EUA, que pode influenciar os juros longos globais.", "file": "podcast/seg_011.mp3", "duration": 16.4}, {"speaker": "Aurora", "text": "E no cenário internacional?", "file": "podcast/seg_012.mp3", "duration": 1.6}, {"speaker": "Ricardo", "text": "A China divulga a Loan Prime Rate, que é a taxa de referência para empréstimos. O Reino Unido e a Zona do Euro divulgam dados de inflação de julho. E a presidente do BCE, Christine Lagarde, faz um discurso que será acompanhado de perto.", "file": "podcast/seg_013.mp3", "duration": 17.6}, {"speaker": "Aurora", "text": "Agora vamos ao resumo do dia de hoje. Ricardo, o que está acontecendo agora?", "file": "podcast/seg_014.mp3", "duration": 5.6}, {"speaker": "Ricardo", "text": "O mercado brasileiro viveu uma sessão de forte otimismo. O Ibovespa disparou quase 2%, atingindo 169.642 pontos. O dólar recuou quase 1%, fechando em R$ 5,17. O grande estímulo veio do Tesouro dos EUA, que anunciou a duplicação do volume de recompra de títulos de longo prazo, passando de US$ 2 bilhões para US$ 4 bilhões por operação.", "file": "podcast/seg_015.mp3", "duration": 23.2}, {"speaker": "Aurora", "text": "E qual foi o impacto dessa decisão?", "file": "podcast/seg_016.mp3", "duration": 2.8}, {"speaker": "Ricardo", "text": "Foi imediato. As taxas dos T-bonds de 30 anos, que estavam em máximas desde 2007 acima de 5,30%, recuaram quase 10 pontos-base. O alívio se espalhou por todos os mercados de risco. Petrobras e Vale subiram quase 3% cada, puxadas pela alta do petróleo. No setor financeiro, Itaú e Bradesco também fecharam no verde.", "file": "podcast/seg_017.mp3", "duration": 21.6}, {"speaker": "Aurora", "text": "E a crise da Casas Bahia continua?", "file": "podcast/seg_018.mp3", "duration": 2.8}, {"speaker": "Ricardo", "text": "Sim, a justiça suspendeu temporariamente as demissões da empresa. A varejista segue operando normalmente enquanto negocia com credores. O ministro da Fazenda, Dario Durigan, também se pronunciou dizendo que os juros pagos pelo Tesouro são elevados e precisam ser endereçados.", "file": "podcast/seg_019.mp3", "duration": 16.0}, {"speaker": "Aurora", "text": "Ricardo, obrigada pela análise completa! Para nossos ouvintes que quiserem acompanhar as atualizações, o jornal completo está disponível em nosso site. E lembrando que sempre atualizamos quando há notícias extraordinárias.", "file": "podcast/seg_020.mp3", "duration": 12.0}, {"speaker": "Ricardo", "text": "É isso mesmo, Aurora. Fiquem atentos! O mercado financeiro não para e nós também não. Um abraço e até a próxima edição!", "file": "podcast/seg_021.mp3", "duration": 8.8}, {"speaker": "Aurora", "text": "Um abraço a todos! O OnzeNews Áudio volta amanhã com mais um resumo completo do mercado. Bom descanso a todos e bons investimentos!", "file": "podcast/seg_022.mp3", "duration": 9.2}];
+
+(function() {
+  let currentIdx = 0;
+  let isPlaying = false;
+  let audio = new Audio();
+  audio.preload = 'auto';
+
+  function formatTime(sec) {
+    if (isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  // Estima duracao total
+  function duracaoTotal() {
+    let total = 0;
+    podcastManifesto.forEach(item => { total += item.duration + 0.5; });
+    return total;
+  }
+
+  function updateDuration() {
+    document.getElementById('podcastDuration').textContent = formatTime(duracaoTotal());
+  }
+
+  function highlightSpeaker(name) {
+    document.getElementById('speakerAurora').classList.toggle('active', name === 'Aurora');
+    document.getElementById('speakerRicardo').classList.toggle('active', name === 'Ricardo');
+  }
+
+  function addTranscriptLine(speaker, text) {
+    const container = document.getElementById('podcastTranscript');
+    const line = document.createElement('div');
+    line.className = 'transcript-line ' + (speaker === 'Aurora' ? 'aurora' : speaker === 'Ricardo' ? 'ricardo' : 'info');
+    if (speaker) {
+      line.innerHTML = '<strong>' + speaker + ':</strong> ' + text;
+    } else {
+      line.textContent = text;
+    }
+    container.appendChild(line);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function updateProgress() {
+    if (!audio.duration) return;
+    const progresso = ((currentIdx + (audio.currentTime / audio.duration)) / podcastManifesto.length) * 100;
+    document.getElementById('podcastProgressFill').style.width = progresso + '%';
+    document.getElementById('podcastProgressThumb').style.left = progresso + '%';
+
+    // Tempo atual estimado
+    let tempoAtual = 0;
+    for (let i = 0; i < currentIdx; i++) {
+      tempoAtual += podcastManifesto[i].duration + 0.5;
+    }
+    tempoAtual += audio.currentTime;
+    document.getElementById('podcastTime').textContent = formatTime(tempoAtual) + ' / ' + formatTime(duracaoTotal());
+  }
+
+  function playSegment(idx) {
+    if (idx >= podcastManifesto.length) {
+      // Terminou
+      isPlaying = false;
+      document.getElementById('podcastIconPlay').innerHTML = '&#9654;';
+      document.getElementById('podcastBtnPlay').classList.remove('playing');
+      highlightSpeaker(null);
+      addTranscriptLine(null, '--- Fim do podcast ---');
+      return;
+    }
+
+    currentIdx = idx;
+    const item = podcastManifesto[currentIdx];
+
+    // Destaca quem esta falando
+    highlightSpeaker(item.speaker);
+
+    // Adiciona ao transcript
+    addTranscriptLine(item.speaker, item.text);
+
+    // Carrega e toca o audio
+    audio.src = item.file;
+    audio.load();
+
+    audio.oncanplay = function() {
+      audio.play().catch(e => {
+        console.log('Autoplay bloqueado, aguardando interacao do usuario');
+      });
+    };
+
+    audio.onended = function() {
+      // Pausa natural entre falantes
+      setTimeout(() => playSegment(currentIdx + 1), 300);
+    };
+
+    audio.ontimeupdate = updateProgress;
+  }
+
+  // Controles globais
+  window.podcastToggle = function() {
+    if (isPlaying && !audio.paused) {
+      audio.pause();
+      isPlaying = false;
+      document.getElementById('podcastIconPlay').innerHTML = '&#9654;';
+      document.getElementById('podcastBtnPlay').classList.remove('playing');
+    } else if (!isPlaying && audio.paused && audio.src) {
+      audio.play();
+      isPlaying = true;
+      document.getElementById('podcastIconPlay').innerHTML = '&#9646;&#9646;';
+      document.getElementById('podcastBtnPlay').classList.add('playing');
+    } else {
+      // Inicia do comeco
+      isPlaying = true;
+      currentIdx = 0;
+      document.getElementById('podcastIconPlay').innerHTML = '&#9646;&#9646;';
+      document.getElementById('podcastBtnPlay').classList.add('playing');
+      document.getElementById('podcastTranscript').innerHTML = '';
+      playSegment(0);
+    }
+  };
+
+  // Seek (clique na barra)
+  document.getElementById('podcastProgressArea').addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    const idx = Math.floor(pct * podcastManifesto.length);
+    if (idx >= 0 && idx < podcastManifesto.length) {
+      audio.pause();
+      playSegment(idx);
+      if (!isPlaying) {
+        isPlaying = true;
+        document.getElementById('podcastIconPlay').innerHTML = '&#9646;&#9646;';
+        document.getElementById('podcastBtnPlay').classList.add('playing');
+      }
+    }
+  });
+
+  // Inicializa
+  updateDuration();
+})();
+</script>
+
+</body>
+</html>
