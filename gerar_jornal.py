@@ -41,46 +41,84 @@ VOZ_PARAMS = {
 
 
 # ─── Gerador de Script Conversacional ────────────────────────────────────────
-def gerar_script_conversacional(resumo_anterior: str, agenda_dia: str, resumo_dia: str) -> str:
-    """Gera um script de conversa JSON entre Aurora (apresentadora) e Ricardo (analista)."""
-    import json
+def extrair_topicos(html: str, max_topicos: int = 5) -> list:
+    """Extrai topicos principais de uma secao HTML (remove tags, pega frases-chave)."""
     import re
+    clean = re.sub('<[^<]+?>', ' ', html)
+    clean = re.sub('\\s+', ' ', clean).strip()
+    if not clean:
+        return []
+    frases = [f.strip() for f in re.split(r'[.!;]', clean) if len(f.strip()) > 30]
+    return frases[:max_topicos]
 
-    # Remove tags HTML para extrair texto puro
-    def strip_html(html):
-        clean = re.sub('<[^<]+?>', ' ', html)
-        clean = re.sub('\\s+', ' ', clean).strip()
-        return clean
 
-    ra_texto = strip_html(resumo_anterior)
-    ag_texto = strip_html(agenda_dia)
-    rd_texto = strip_html(resumo_dia)
+def gerar_script_conversacional(resumo_anterior: str, agenda_dia: str, resumo_dia: str) -> str:
+    """Gera um script de conversa JSON entre Aurora (apresentadora) e Ricardo (analista).
+    O conteudo e dinamico, baseado nas noticias reais coletadas."""
+    import json
 
-    script = [
-        {"s": "Aurora", "t": f"Olá! Sejam muito bem-vindos ao OnzeNews Áudio, o podcast do nosso informativo financeiro diário. Hoje é {DIA_SEMANA}, {DATA_EXTENSO}. Eu sou a Aurora e estou aqui com o Ricardo, nosso analista de mercados. Ricardo, bom dia!"},
-        {"s": "Ricardo", "t": "Bom dia, Aurora! Obrigado pelo convite. Temos um dia bem movimentado pela frente no mercado financeiro."},
-        {"s": "Aurora", "t": "Ótimo! Então vamos começar pelo que aconteceu ontem. Ricardo, quais foram os principais acontecimentos?"},
-        {"s": "Ricardo", "t": f"Ontem foi um dia bem tenso no varejo. A Casas Bahia entrou com pedido de recuperação judicial com passivos de R$ 17,3 bilhões. A empresa já vinha de dificuldades há tempo, com prejuízos em 20 dos 30 últimos trimestres. A situação se agravou com a impossibilidade de captar novos recursos e a restrição de crédito por parte de fornecedores e seguradoras."},
-        {"s": "Aurora", "t": "E no setor bancário?"},
-        {"s": "Ricardo", "t": "O C6 Bank fechou o primeiro semestre com lucro de R$ 1,25 bilhão, alta de 20%. Um resultado positivo em meio ao cenário desafiador. Já os estrangeiros fizeram o maior saque semanal da B3 desde 2008, mostrando a aversão a risco global dos investidores internacionais."},
-        {"s": "Aurora", "t": "E tem mais notícias do setor, não é?"},
-        {"s": "Ricardo", "t": "Sim! A Braskem Idesa entrou com pedido de recuperação judicial nos EUA sob o Capítulo 11. A Oncoclínicas teve prejuízo quadruplicado, chegando a R$ 275 milhões. Já a Vibra Energia foi destaque positivo com lucro de R$ 2,29 bilhões, alta espantosa de 365%."},
-        {"s": "Aurora", "t": "Agora vamos falar sobre a agenda de hoje. O que os investidores devem acompanhar?"},
-        {"s": "Ricardo", "t": "O grande destaque é a divulgação da ata da última reunião do Federal Reserve, o FOMC, às 15 horas de Brasília. Esse documento vai mostrar como os membros do comitê avaliaram o cenário e pode dar pistas sobre os próximos passos dos juros americanos. É um evento de altíssimo impacto para os mercados globais."},
-        {"s": "Aurora", "t": "E aqui no Brasil?"},
-        {"s": "Ricardo", "t": "A FGV divulga o IGP-M do segundo decênio de agosto pela manhã. A tarde, o Banco Central revela o fluxo cambial estrangeiro semanal. E também tem leilão de títulos de 20 anos nos EUA, que pode influenciar os juros longos globais."},
-        {"s": "Aurora", "t": "E no cenário internacional?"},
-        {"s": "Ricardo", "t": "A China divulga a Loan Prime Rate, que é a taxa de referência para empréstimos. O Reino Unido e a Zona do Euro divulgam dados de inflação de julho. E a presidente do BCE, Christine Lagarde, faz um discurso que será acompanhado de perto."},
-        {"s": "Aurora", "t": "Agora vamos ao resumo do dia de hoje. Ricardo, o que está acontecendo agora?"},
-        {"s": "Ricardo", "t": f"O mercado brasileiro viveu uma sessão de forte otimismo. O Ibovespa disparou quase 2%, atingindo 169.642 pontos. O dólar recuou quase 1%, fechando em R$ 5,17. O grande estímulo veio do Tesouro dos EUA, que anunciou a duplicação do volume de recompra de títulos de longo prazo, passando de US$ 2 bilhões para US$ 4 bilhões por operação."},
-        {"s": "Aurora", "t": "E qual foi o impacto dessa decisão?"},
-        {"s": "Ricardo", "t": "Foi imediato. As taxas dos T-bonds de 30 anos, que estavam em máximas desde 2007 acima de 5,30%, recuaram quase 10 pontos-base. O alívio se espalhou por todos os mercados de risco. Petrobras e Vale subiram quase 3% cada, puxadas pela alta do petróleo. No setor financeiro, Itaú e Bradesco também fecharam no verde."},
-        {"s": "Aurora", "t": "E a crise da Casas Bahia continua?"},
-        {"s": "Ricardo", "t": "Sim, a justiça suspendeu temporariamente as demissões da empresa. A varejista segue operando normalmente enquanto negocia com credores. O ministro da Fazenda, Dario Durigan, também se pronunciou dizendo que os juros pagos pelo Tesouro são elevados e precisam ser endereçados."},
-        {"s": "Aurora", "t": "Ricardo, obrigada pela análise completa! Para nossos ouvintes que quiserem acompanhar as atualizações, o jornal completo está disponível em nosso site. E lembrando que sempre atualizamos quando há notícias extraordinárias."},
-        {"s": "Ricardo", "t": "É isso mesmo, Aurora. Fiquem atentos! O mercado financeiro não para e nós também não. Um abraço e até a próxima edição!"},
-        {"s": "Aurora", "t": "Um abraço a todos! O OnzeNews Áudio volta amanhã com mais um resumo completo do mercado. Bom descanso a todos e bons investimentos!"}
-    ]
+    topicos_ra = extrair_topicos(resumo_anterior, 5)
+    topicos_ag = extrair_topicos(agenda_dia, 4)
+    topicos_rd = extrair_topicos(resumo_dia, 5)
+
+    script = []
+
+    # --- ABERTURA ---
+    script.append({"s": "Aurora", "t": f"Olá! Sejam muito bem-vindos ao OnzeNews Áudio, o podcast do nosso informativo financeiro diário. Hoje é {DIA_SEMANA}, {DATA_EXTENSO}. Eu sou a Aurora e estou aqui com o Ricardo, nosso analista de mercados. Ricardo, bom dia!"})
+    script.append({"s": "Ricardo", "t": "Bom dia, Aurora! Obrigado pelo convite. Temos bastante coisa para tratar hoje, o mercado está bem movimentado."})
+
+    # --- RESUMO DO DIA ANTERIOR ---
+    if topicos_ra:
+        script.append({"s": "Aurora", "t": "Vamos começar pelo que aconteceu ontem. Ricardo, quais foram os principais acontecimentos?"})
+        for i, topico in enumerate(topicos_ra[:3]):
+            if i == 0:
+                script.append({"s": "Ricardo", "t": f"Olha, {topico.strip().rstrip('.')}. Esse foi um dos pontos que mais chamou atenção dos investidores."})
+            elif i == 1:
+                script.append({"s": "Aurora", "t": "E tem mais alguma notícia importante de ontem?"})
+                script.append({"s": "Ricardo", "t": f"Sim! {topico.strip().rstrip('.')}. Isso também pesou no humor do mercado."})
+            else:
+                script.append({"s": "Aurora", "t": "E no setor de risco?"})
+                script.append({"s": "Ricardo", "t": f"Também vale destacar que {topico.strip().rstrip('.')}."})
+    else:
+        script.append({"s": "Aurora", "t": "Vamos começar pelo resumo de ontem. Ricardo, o que destacou?"})
+        script.append({"s": "Ricardo", "t": f"Ontem tivemos um dia movimentado. {resumo_anterior[:200].strip() if resumo_anterior else 'O mercado seguiu o tom global com movimentação moderada'}."})
+
+    # --- AGENDA DO DIA ---
+    if topicos_ag:
+        script.append({"s": "Aurora", "t": "Agora vamos falar sobre a agenda de hoje. O que os investidores devem acompanhar?"})
+        for i, topico in enumerate(topicos_ag[:3]):
+            if i == 0:
+                script.append({"s": "Ricardo", "t": f"O grande destaque de hoje é: {topico.strip().rstrip('.')}. Isso pode mover bastante os mercados."})
+            elif i == 1:
+                script.append({"s": "Aurora", "t": "E aqui no Brasil?"})
+                script.append({"s": "Ricardo", "t": f"Aqui no Brasil, {topico.strip().rstrip('.')}."})
+            else:
+                script.append({"s": "Aurora", "t": "E no cenário internacional?"})
+                script.append({"s": "Ricardo", "t": f"No cenário internacional, {topico.strip().rstrip('.')}."})
+    else:
+        script.append({"s": "Aurora", "t": "E a agenda de hoje, o que temos?"})
+        script.append({"s": "Ricardo", "t": f"A agenda de hoje traz alguns eventos importantes. {agenda_dia[:200].strip() if agenda_dia else 'Investidores devem ficar atentos aos indicadores do dia'}."})
+
+    # --- RESUMO DO DIA ATUAL ---
+    if topicos_rd:
+        script.append({"s": "Aurora", "t": "Agora vamos ao resumo do dia de hoje. Ricardo, o que está acontecendo agora?"})
+        for i, topico in enumerate(topicos_rd[:3]):
+            if i == 0:
+                script.append({"s": "Ricardo", "t": f"O mercado está reagindo assim: {topico.strip().rstrip('.')}. Esse é o quadro geral da sessão de hoje."})
+            elif i == 1:
+                script.append({"s": "Aurora", "t": "E qual foi o impacto disso?"})
+                script.append({"s": "Ricardo", "t": f"Na prática, {topico.strip().rstrip('.')}. Os investidores estão processando essas informações."})
+            else:
+                script.append({"s": "Aurora", "t": "E mais alguma movimentação relevante?"})
+                script.append({"s": "Ricardo", "t": f"Também vale notar que {topico.strip().rstrip('.')}."})
+    else:
+        script.append({"s": "Aurora", "t": "E o resumo do dia, como está?"})
+        script.append({"s": "Ricardo", "t": f"Por enquanto, {resumo_dia[:200].strip() if resumo_dia else 'o mercado segue em aberto com expectativa'}."})
+
+    # --- ENCERRAMENTO ---
+    script.append({"s": "Aurora", "t": "Ricardo, obrigada pela análise completa! Para nossos ouvintes que quiserem acompanhar as atualizações, o jornal completo está disponível em nosso site. E lembrando que sempre atualizamos quando há notícias extraordinárias."})
+    script.append({"s": "Ricardo", "t": "É isso mesmo, Aurora. Fiquem atentos! O mercado financeiro não para e nós também não. Um abraço e até a próxima edição!"})
+    script.append({"s": "Aurora", "t": f"Um abraço a todos! O OnzeNews Áudio volta amanhã com mais um resumo completo do mercado. Bom descanso a todos e bons investimentos!"})
 
     return json.dumps(script, ensure_ascii=False)
 
