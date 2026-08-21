@@ -57,9 +57,19 @@ def github_api(endpoint, method="GET", data=None):
     try:
         req = Request(url, headers=headers, data=body, method=method)
         with urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode('utf-8'))
+            # 204 No Content = sucesso (ex: workflow dispatch)
+            if resp.status == 204:
+                return None
+            raw = resp.read().decode('utf-8')
+            if not raw or not raw.strip():
+                return None
+            return json.loads(raw)
     except Exception as e:
-        return {"error": str(e)}
+        # Se é HTTPError, tentar extrair a mensagem
+        err_str = str(e)
+        if hasattr(e, 'code') and e.code == 204:
+            return None
+        return {"error": err_str}
 
 
 def get_workflow_content():
@@ -108,8 +118,11 @@ def trigger_workflow():
     
     result = github_api(endpoint, method="POST", data=data)
     
-    # 204 No Content é sucesso
-    if result is None or (isinstance(result, dict) and "error" not in result):
+    # 204 No Content = sucesso (result é None)
+    if result is None:
+        return True, None
+    
+    if isinstance(result, dict) and "error" not in result:
         return True, None
     
     return False, result.get("error", "Erro desconhecido")
