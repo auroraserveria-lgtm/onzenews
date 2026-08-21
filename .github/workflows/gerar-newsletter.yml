@@ -24,6 +24,9 @@ jobs:
           pip install playwright edge-tts
           playwright install chromium --with-deps
 
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
       - name: Coletar noticias
         run: python scrap_news.py
 
