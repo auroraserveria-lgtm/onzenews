@@ -100,8 +100,12 @@ def main():
     if required:
         print(f"\nUploading {len(required)} files...")
         for item in required:
-            path = item.get("path", "")
-            sha = item.get("checksum", "")
+            # required can be a list of strings (file paths) or dicts
+            if isinstance(item, str):
+                path = item
+            else:
+                path = item.get("path", "")
+            
             print(f"  Uploading {path}...")
             
             # Read file content
