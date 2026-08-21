@@ -2,7 +2,6 @@ name: Gerar Newsletter Diario
 
 on:
   schedule:
-    # Gerado automaticamente pelo painel admin
     - cron: '15 12 * * *'
   workflow_dispatch:
 
@@ -32,6 +31,7 @@ jobs:
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
       - name: Deploy to Netlify
-        run: |
-          npm install -g netlify-cli
-          netlify deploy --dir=./output --prod --site=${{ secrets.NETLIFY_SITE_ID }} --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} --message="Deploy automatico"
+        run: python deploy_netlify.py
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
