@@ -2,7 +2,7 @@ name: Gerar Newsletter Diario
 
 on:
   schedule:
-    - cron: '15 12 * * *'
+    - cron: '15 09 * * *'
   workflow_dispatch:
 
 permissions:
