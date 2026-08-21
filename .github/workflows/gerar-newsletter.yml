@@ -30,8 +30,10 @@ jobs:
       - name: Gerar newsletter
         run: python gerar_jornal.py diario output/secao_resumo_anterior.html output/secao_agenda.html output/secao_resumo_dia.html
 
-      - name: Deploy to Netlify
-        run: python deploy_netlify.py
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel@latest
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
