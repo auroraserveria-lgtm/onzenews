@@ -27,11 +27,19 @@
             </div>
             <div class="status-item">
                 <span class="status-label">Último Deploy</span>
-                <span class="status-value">{{ last_deploy or 'Nenhum' }}</span>
+                <span class="status-value">{{ last_deploy[:16] if last_deploy else 'Nenhum' }}</span>
             </div>
+            {% if workflow_status %}
+            <div class="status-item">
+                <span class="status-label">Último Workflow</span>
+                <span class="status-badge {{ 'status-active' if workflow_status.status == 'completed' and workflow_status.conclusion == 'success' else 'status-inactive' }}">
+                    {{ workflow_status.status }}{% if workflow_status.conclusion %} ({{ workflow_status.conclusion }}){% endif %}
+                </span>
+            </div>
+            {% endif %}
             <div class="status-item">
                 <span class="status-label">Site</span>
-                <a href="https://onzenews-public.netlify.app" target="_blank" class="btn btn-sm btn-link">
+                <a href="https://onzenews-public.vercel.app" target="_blank" class="btn btn-sm btn-link">
                     Ver ↗
                 </a>
             </div>
@@ -225,7 +233,7 @@ async function generateNewsletter() {
             <strong>Geração iniciada!</strong><br>
             O newsletter está sendo gerado no GitHub Actions.<br>
             O deploy acontecerá automaticamente em alguns minutos.<br>
-            <a href="https://app.netlify.com/teams/aurora.server.ia/sites" target="_blank" style="color: #0066cc;">Ver deploys no Netlify ↗</a>
+            <a href="https://vercel.com/alexandre-projects1/onzenews-public/deployments" target="_blank" style="color: #0066cc;">Ver deploys no Vercel ↗</a>
         `;
         
     } catch (error) {

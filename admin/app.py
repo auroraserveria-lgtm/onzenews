@@ -417,20 +417,44 @@ def dashboard():
     # Verificar status do GitHub
     github_status = "conectado" if GITHUB_TOKEN else "não configurado"
     
-    # Buscar último deploy no Netlify
+    # Buscar último deploy no Vercel (newsletter)
     last_deploy = None
-    try:
-        from urllib.request import urlopen, Request
-        req = Request(
-            "https://api.netlify.com/api/v1/sites/4b57a611-4ba4-4759-badc-dd1ea637e495/deploys?per_page=1",
-            headers={"User-Agent": "OnzeNews-Admin"}
-        )
-        with urlopen(req, timeout=5) as resp:
-            deploys = json.loads(resp.read().decode())
-            if deploys:
-                last_deploy = deploys[0].get("created_at")
-    except:
-        pass
+    vercel_token = os.environ.get("VERCEL_TOKEN", "")
+    if vercel_token:
+        try:
+            from urllib.request import urlopen, Request
+            import urllib.error
+            req = Request(
+                "https://api.vercel.com/v6/deployments?projectId=prj_wSI8kDDsxQlawduD2qxJB8MJc2NC&limit=1&target=production",
+                headers={
+                    "Authorization": f"Bearer {vercel_token}",
+                    "User-Agent": "OnzeNews-Admin"
+                }
+            )
+            with urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode())
+                deploys = data.get("deployments", [])
+                if deploys:
+                    created_ts = deploys[0].get("created", 0)
+                    if created_ts:
+                        last_deploy = datetime.fromtimestamp(created_ts / 1000).isoformat()
+        except Exception:
+            pass
+    
+    # Status do último workflow
+    workflow_status = None
+    if GITHUB_TOKEN:
+        try:
+            result = github_api(f"/repos/{GITHUB_REPO}/actions/runs?per_page=1")
+            runs = result.get("workflow_runs", [])
+            if runs:
+                workflow_status = {
+                    "status": runs[0]["status"],
+                    "conclusion": runs[0].get("conclusion"),
+                    "created_at": runs[0]["created_at"]
+                }
+        except Exception:
+            pass
 
     return render_template('dashboard.html',
         total_logs=total_logs,
@@ -442,7 +466,8 @@ def dashboard():
         recent_generations=recent_generations,
         github_status=github_status,
         github_repo=GITHUB_REPO,
-        last_deploy=last_deploy
+        last_deploy=last_deploy,
+        workflow_status=workflow_status
     )
 
 # ─── Routes: Logs ────────────────────────────────────────────────────────────
