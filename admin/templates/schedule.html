@@ -35,7 +35,8 @@
 <div class="content-card">
     <div class="content-card-header">
         <h2 class="content-card-title">Configurações de Agendamento</h2>
-        <button onclick="saveSchedule()" class="btn btn-primary btn-sm">💾 Salvar no GitHub</button>
+        <button onclick="saveSchedule()" class="btn btn-primary btn-sm">💾 Salvar</button>
+        <button onclick="applyToGitHub()" class="btn btn-secondary btn-sm" style="margin-left: 8px;">🔄 Aplicar no GitHub</button>
     </div>
     <div class="content-card-body">
         <div class="form-row">
@@ -209,10 +210,6 @@ function saveSchedule() {
         update_days: days.join(',')
     };
 
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = '⏳ Salvando no GitHub...';
-
     fetch('/schedule/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -220,19 +217,35 @@ function saveSchedule() {
     })
     .then(r => r.json())
     .then(data => {
-        btn.disabled = false;
-        btn.textContent = '💾 Salvar no GitHub';
-        
         if (data.success) {
-            alert(data.message || 'Agendamento salvo e atualizado no GitHub Actions!');
+            alert(data.message);
         } else {
             alert('Erro: ' + (data.message || 'Erro desconhecido'));
         }
     })
     .catch(error => {
-        btn.disabled = false;
-        btn.textContent = '💾 Salvar no GitHub';
         alert('Erro ao salvar: ' + error.message);
+    });
+}
+
+function applyToGitHub() {
+    if (!confirm('Aplicar os horarios configurados no GitHub Actions?')) return;
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '⏳ Aplicando...';
+    
+    fetch('/schedule/apply', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = '🔄 Aplicar no GitHub';
+        alert(data.message);
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.textContent = '🔄 Aplicar no GitHub';
+        alert('Erro: ' + error.message);
     });
 }
 

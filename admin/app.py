@@ -572,26 +572,8 @@ def update_schedule():
     conn.commit()
     conn.close()
 
-    # Atualizar cron no GitHub Actions
-    if GITHUB_TOKEN:
-        # Buscar horários ativos
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT update_time FROM update_times WHERE is_active = 1 ORDER BY update_time")
-        times = [row['update_time'] for row in cursor.fetchall()]
-        conn.close()
-        
-        if times:
-            success, error = update_cron_schedule(times)
-            if success:
-                log_action("update_schedule", f"Agendamento atualizado no GitHub Actions: {times}")
-                return jsonify({"success": True, "message": "Agendamento atualizado no GitHub Actions"})
-            else:
-                log_action("update_schedule_error", f"Erro ao atualizar GitHub: {error}")
-                return jsonify({"success": False, "message": f"Erro ao atualizar GitHub: {error}"})
-    
-    log_action("update_schedule", f"Configurações atualizadas: {json.dumps(data.get('configs', {}))}")
-    return jsonify({"success": True, "message": "Agendamento atualizado com sucesso"})
+    log_action("update_schedule", f"Configuracoes salvas: {json.dumps(data.get('configs', {}))}")
+    return jsonify({"success": True, "message": "Agendamento salvo com sucesso"})
 
 @app.route('/schedule/times', methods=['POST'])
 @login_required
@@ -630,18 +612,38 @@ def manage_times():
     times = cursor.fetchall()
     conn.close()
 
-    # Atualizar cron no GitHub Actions
-    if GITHUB_TOKEN and action in ('add', 'toggle', 'delete'):
-        active_times = [t['update_time'] for t in times if t['is_active']]
-        if active_times:
-            success, error = update_cron_schedule(active_times)
-            if success:
-                log_action("update_cron", f"Cron atualizado no GitHub: {active_times}")
+    # Horarios salvos - o workflow usa o cron do YAML diretamente
+    # Atualizacao do GitHub e feita pelo endpoint /schedule/apply
 
     return jsonify({
         "success": True,
         "times": [{"id": t['id'], "time": t['update_time'], "active": bool(t['is_active'])} for t in times]
     })
+
+@app.route('/schedule/apply', methods=['POST'])
+@login_required
+def apply_schedule():
+    """Aplica os horarios salvos no GitHub Actions (separado do save pra evitar timeout)."""
+    if not GITHUB_TOKEN:
+        return jsonify({"success": False, "message": "GitHub token nao configurado"})
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT update_time FROM update_times WHERE is_active = 1 ORDER BY update_time")
+    times = [row['update_time'] for row in cursor.fetchall()]
+    conn.close()
+    
+    if not times:
+        return jsonify({"success": False, "message": "Nenhum horario ativo"})
+    
+    try:
+        success, error = update_cron_schedule(times)
+        if success:
+            return jsonify({"success": True, "message": f"Cron atualizado no GitHub: {times}"})
+        else:
+            return jsonify({"success": False, "message": f"Erro: {error}"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erro: {str(e)[:100]}"})
 
 # ─── Routes: Sources ─────────────────────────────────────────────────────────
 @app.route('/sources')
