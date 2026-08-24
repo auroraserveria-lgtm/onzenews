@@ -1376,14 +1376,37 @@ def gerar_jornal(resumo_anterior: str, agenda_dia: str, resumo_dia: str):
 
     html = gerar_html(resumo_anterior, agenda_dia, resumo_dia)
     nome = f"OnzeNews_{HOJE.strftime('%Y-%m-%d')}"
-    caminho = html_para_pdf(html, nome)
 
-    # Atualizar index.html para redirecionar para o jornal mais recente
-    atualizar_index(nome)
+    # Salvar como index.html (URL limpa, sem data)
+    index_path = OUTPUT_DIR / "index.html"
+    index_path.write_text(html, encoding="utf-8")
+    print(f"  [OK] index.html salvo")
+
+    # Salvar backup datado
+    caminho_html = OUTPUT_DIR / f"{nome}.html"
+    caminho_html.write_text(html, encoding="utf-8")
+    print(f"  [OK] Backup: {nome}.html")
+
+    # Gerar PDF
+    caminho_pdf = OUTPUT_DIR / f"{nome}.pdf"
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1200, "height": 900})
+        page.set_content(html, wait_until="networkidle")
+        page.wait_for_timeout(1000)
+        page.pdf(
+            path=str(caminho_pdf),
+            format="A4",
+            margin={"top": "10mm", "right": "12mm", "bottom": "10mm", "left": "12mm"},
+            print_background=True
+        )
+        browser.close()
+    print(f"  [OK] PDF: {nome}.pdf")
 
     print("=" * 50)
     print(f"[OK] Jornal gerado com sucesso!\n")
-    return caminho
+    return caminho_pdf
 
 
 def gerar_extra(titulo: str, corpo: str):
