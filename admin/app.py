@@ -623,7 +623,7 @@ def manage_times():
 @app.route('/schedule/apply', methods=['POST'])
 @login_required
 def apply_schedule():
-    """Aplica os horarios salvos no GitHub Actions (separado do save pra evitar timeout)."""
+    """Aplica os horarios salvos no GitHub Actions."""
     if not GITHUB_TOKEN:
         return jsonify({"success": False, "message": "GitHub token nao configurado"})
     
@@ -636,14 +636,53 @@ def apply_schedule():
     if not times:
         return jsonify({"success": False, "message": "Nenhum horario ativo"})
     
+    # Converter pra cron UTC
+    cron_lines = []
+    for t in times:
+        parts = t.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+        utc_hour = (hour + 3) % 24
+        cron_lines.append(f"    - cron: '{minute} {utc_hour} * * *'")
+    
+    schedule_block = "  schedule:\n" + "\n".join(cron_lines)
+    
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/.github/workflows/{GITHUB_WORKFLOW}"
+    gh_headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "OnzeNews-Admin"
+    }
+    
     try:
-        success, error = update_cron_schedule(times)
-        if success:
-            return jsonify({"success": True, "message": f"Cron atualizado no GitHub: {times}"})
-        else:
-            return jsonify({"success": False, "message": f"Erro: {error}"})
+        # 1. Ler SHA
+        req = Request(url, headers=gh_headers)
+        with urlopen(req, timeout=10) as resp:
+            wf = json.loads(resp.read().decode())
+        
+        content = base64.b64decode(wf["content"]).decode("utf-8")
+        new_content = re.sub(
+            r'  schedule:\s*\n(?:.*\n)*?(?=  [a-z_]|\njobs:)',
+            schedule_block + "\n",
+            content,
+            flags=re.DOTALL
+        )
+        
+        if new_content == content:
+            return jsonify({"success": True, "message": "Schedule ja esta correto"})
+        
+        # 2. PUT
+        put_data = json.dumps({
+            "message": "chore: update schedule via admin panel",
+            "content": base64.b64encode(new_content.encode()).decode(),
+            "sha": wf["sha"]
+        }).encode()
+        put_req = Request(url, data=put_data, headers={**gh_headers, "Content-Type": "application/json"}, method="PUT")
+        urlopen(put_req, timeout=10)
+        
+        return jsonify({"success": True, "message": f"Cron atualizado: {times}"})
     except Exception as e:
-        return jsonify({"success": False, "message": f"Erro: {str(e)[:100]}"})
+        return jsonify({"success": False, "message": f"Erro: {str(e)[:80]}"})
 
 # ─── Routes: Sources ─────────────────────────────────────────────────────────
 @app.route('/sources')
